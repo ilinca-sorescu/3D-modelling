@@ -1,17 +1,16 @@
 
 % Draft #1 (final?)
-
 \vfil
 
 \centerline{\Large Computer Science Project Proposal}
 \vspace{0.4in}
 \centerline{\Large Constructing 3D models from image sequences}
 \vspace{0.4in}
-\centerline{\large I. G. Sorescu, Newnham College}
+\centerline{\large I. G. Sorescu, Newnham College, igs23}
 \vspace{0.3in}
 \centerline{\large Originator: I. G. Sorescu}
 \vspace{0.3in}
-\centerline{\large 17$^{th}$ October 2014}
+\centerline{\large 23$^{th}$ October 2014}
 
 \vfil
 
@@ -26,37 +25,49 @@
 \noindent
  
 \noindent
-{\bf Project Overseers:} Dr~A.~Rice  \& Dr~T.~G.~Griffin
+{\bf Project Overseers:} Dr~A.~C.~Rice  \& Dr~T.~G.~Griffin
 
 
 % Main document
 
 \section*{Introduction and Description of the Work}
 
-The aim of this project is to extract a 3D model of a small object from a sequence of plain images and then to export the model into a 3D geometry format such as PLY. The resulting file can then be rendered and processed by MeshLab (or similar).  \\
-The main focus of the project is to obtain a wireframe model from calibrated images. A digital renderer will be used in order to provide calibrated, error-free input. The project is designed to be later extended to support real camera input.\\
-(If real camera input is supported: ) The inputted set of pictures must be obtained using the following technique [add an image to represent this]: 
-{\emph Define an "origin" on a perfectly horizontal table and place the camera there facing a white background. Place an object of max height X at a distance Y from the origin. Take the first picture. Rotate the object 30 degrees (counter clockwise as seen from camera) and take the second picture ... until 12 pictures are taken. Update pictures in the order in which they were taken. Assume well-lit room and no major light differences between pictures in the same set.}\\  The digital renderer will imitate this technique and output the equivalent 12 pictures.
+The aim of this project is to extract a partial 3D model of a small object from a sequence of plain images and then to export the model into a 3D geometry format such as PLY. The resulting file can then be rendered and processed by MeshLab or similar mesh processing software.\\
+The main focus of the project is to obtain a partial wireframe model from a sequence of images taken from pre-established locations with respect to the object. An open-sorce ray tracer will be used in order to set up a static scene consisting of the object to be reconstructed placed in a well-lit environment against a white background. The sequence of images to be inputted into the 3D model constructor will be acquired by taking digital snapshots of this scene from the pre-established locations, thus imitating the process of photographing the object with a pre-calibrated camera. The project is designed to be later extended to support real camera input.\\  
+What follows is a description of a technique which might be used in order to obtain the image sequences. The setup is described here in terms of photographing real objects in order to emphasize the fact that the project can naturally be extended to interact with a real camera. However, for the purposes of this project, this technique will be imitated by digitally constructing the equivalent snapshots of an existing 3D model in an attempt to reconstruct its shape:\\
+{\emph Define an origin on a perfectly horizontal table and place the camera there facing a white background. Place an object of a pre-determined maximum height at a fixed distance from the origin in front of the camera. Take the first picture. Rotate the object by 30 degrees counter clockwise and take the second picture. Repeat until 12 pictures are taken. Input the pictures in the order in which they were taken. This process is assumed to have taken place in well-lit environment with no major light differences between pictures in the same set.}\\
+The outcome of any 3D model constructor used on this input is considered to be a partial solution because the input provides no information about the shape of the object as seen from above and below.  
+
 
 \section*{Starting Point}
-Some experience with C/C++.
-IB maths and graphics.
+I am planning to use an open-source ray tracer such as POV-Ray in order to create image sequences from an existing 3D model in an attempt to recreate its shape. I will also be using the feature detection and feature matching functionalities of OpenCV.
 
 \section*{Resources Required}
-my own computer + backup plans.\\
-Open source libraries I might use: OpenCV, OpenGL (for the renderer), MeshLab (to view the output) \\
-For the extension: a digital camera. Specific details to be added later but anything which supports manual settings should do.  
+Some open source libraries will be used as described in the previous section. They can be downloaded freely from http://www.povray.org/ and http://opencv.org/ respectively.\\
+MeshLab will be used in order to view the resulting 3D model. It can be downloaded from http://meshlab.sourceforge.net/.\\
+No special hardware resources will be required unless the extension to provide support for camera interaction is undertaken. The project is aimed at home users so the digital camera to be used should have no specific requirements. To ensure this I am planning to use my own phone camera.\\
+
+I am also planning to use my own machine, doing regular backups to github and to PWF. I can resume the development on any of the machines in the Computer Lab should my machine suddenly fail. 
+
+\section*{Substance and Structure of the Project}
+To ensure the successful completion of the project, the workload has been divided into the following manageable chunks:
+\begin{enumerate}
+\item {\bf Research:} get familiarized with epipolar geometry and with the algorithms mentioned in this section. 
+\item {\bf Module design:} split the project into modules, establish how they interact, construct the corresponding UML diagrams. 
+\item {\bf Test harness:} implement the test harness using POV-Ray. Given a 3D model, the test harness will generate the image sequences to be inputted into the partial 3D model constructor by taking snapshots of the rendered model from each of the pre-established locations in turn. This module will be used in order to evaluate the success of the project by adding a measured error to the snapshots and measuring the accuracy of the outputted 3D model. Error can be added by rendering the object at a distance $\epsilon$ from the specified location, or by adding blur etc.
+\item {\bf First prototype:} implement triangularization in order to get the first prototype of a partial 3D constructor.
+\item {\bf Refinement of the partial 3D constructor:}    
+\end{enumerate}
 
 
-\section*{Work to be done}
-For core bits (strictly sufficient to satisfy the success criterion):
+The project consists of the following main sections:
 \begin{itemize}
 \item write digital renderer to provide calibrated input for the modules to follow - this module will be later used to evaluate the results by adding a measured error to the inputs and comparing the outputs
 \item computing the geometric relation between neighbouring images
 \item compute a dense set of correspondences between neighbouring images
 {\emph stereo rectification, stereo matching, dense depth map}
 \item reconstructing the 3D object shape (a wireframe)
-{\emph overlying a 2D triangular mesh on top of one of the images to bild corresponding 3D mesh by wrapping vertices of the triangles in 3D space by using depth maps OR volumetric depth map integration, Kalman filters}
+{\emph overlying a 2D triangular mesh on top of one of the images to build corresponding 3D mesh by wrapping vertices of the triangles in 3D space by using depth maps OR volumetric depth map integration, Kalman filters}
 \end{itemize}
 For the extensions:
 \begin{itemize}
@@ -70,10 +81,10 @@ The project is considered to be a success if it can correctly reproduce the shap
  
 \section*{Possible Extensions}
 \begin{itemize}
-\item support for real camera input
-\item add shadowing to model
-\item add texture to model
-\item self-calibration: this would allow the users to input virtually any set of pictures representing an object as long as they have a large overlap and completely determine the object (i.e.: no need to take exactly 12 pictures 30 degrees apart).
+\item Add a camera module in order to provide support for real camera input (instead of using digital snapshots generated using a ray tracer).
+\item Add shadowing to the outputted 3D mesh. 
+\item Add texture to the outputted 3D mesh.
+\item Implement structure-from-motion and self-calibration: this would allow the users to input virtually any set of pictures representing an object as long as any consecutive pictures have a large overlap (i.e.: no need to pre-establish the camera pose for each photo in the sequence).
 \end{itemize}
 
 \section*{Timetable}
