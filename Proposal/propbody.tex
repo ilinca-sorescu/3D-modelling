@@ -10,7 +10,7 @@
 \vspace{0.3in}
 \centerline{\large Originator: I. G. Sorescu}
 \vspace{0.3in}
-\centerline{\large 23$^{th}$ October 2014}
+\centerline{\large 22$^{nd}$ October 2014}
 
 \vfil
 
@@ -53,10 +53,10 @@ I am also planning to use my own machine, doing regular backups to github and to
 \section*{Substance and Structure of the Project}
 To ensure the successful completion of the project, the workload has been divided into the following manageable chunks:
 \begin{enumerate}
-\item {\bf Research:} get familiarized with epipolar geometry and with the algorithms mentioned in this section. 
-\item {\bf Module design:} split the project into modules, establish how they interact, construct the corresponding UML diagrams. 
-\item {\bf Test harness:} implement the test harness using POV-Ray. Given a 3D model, the test harness will generate the image sequences to be inputted into the partial 3D model constructor by taking snapshots of the rendered model from each of the pre-established locations in turn. This module will be used in order to evaluate the success of the project by adding a measured error to the snapshots and measuring the accuracy of the outputted 3D model. Error can be added by rendering the object at a distance $\epsilon$ from the specified location, or by adding blur etc.
-\item {\bf First prototype:} implement triangularization in order to get the first prototype of a partial 3D constructor.
+\item {\bf Research:} Get familiarized with epipolar geometry and with the algorithms mentioned in this section. 
+\item {\bf Module design:} Split the project into modules, establish how they interact, construct the corresponding UML diagrams. 
+\item {\bf Test harness:} Implement the test harness using POV-Ray. Given a 3D model, the test harness will generate the image sequences to be inputted into the partial 3D model constructor by taking snapshots of the rendered model from each of the pre-established locations in turn. This module will be used in order to evaluate the success of the project by adding a measured error to the snapshots and measuring the accuracy of the outputted 3D model. Error can be added by rendering the object at a distance $\epsilon$ from the specified location, or by adding blur etc.
+\item {\bf First prototype:} Implement triangularization in order to get the first prototype of a partial 3D constructor.
 \item {\bf Refinement of the partial 3D constructor:} This step consists of iteratively improving the current prototype in order to get a more complete and more accurate 3D model. Some of the possible prototypes are listed below. They need not be all implemented if the current results are satisfactory. If multiple satisfactory prototypes are implemented they will be evaluated individually and included in the final solution. The users can then specify which one they would like to use. 
 	\begin{itemize}
 	\item Prototype \#{2}: Implement dense stereo matching [1][2] to estimate the depth of each point from a view point. Convert the results into a depth map [2]. The depth map can be directly used as a 3D model by displaying darker shades for more distant points. However, this cannot be exported into a common 3D geometry format so it should be used in conjunction with the algorithms described in prototype \#{3} to provide a complete solution. I consider this partial solution to be a prototype by itself because the ability to visualize the output enables me to evaluate the results of this intermediate step. This might prove useful in order to discuss whether using meshes was the right choice since many other approaches could be taken instead.
@@ -64,7 +64,7 @@ To ensure the successful completion of the project, the workload has been divide
 	\item Prototype \#{4}: Use a volumetric depth map integration approach [1].
 	\item Prototype \#{5}: Implement a Kalman filter [1].  
 	\end{itemize}
-\item {\bf Evaluation: } Evaluate the results using the test harness by adding a measured error to the input and comparing the output to that obtained from the equivalent error-free images.
+\item {\bf Evaluation:} Evaluate the results using the test harness by adding a measured error to the input and comparing the output to that obtained from the equivalent error-free images.
 \item {\bf Write the dissertation}     
 \end{enumerate}
 
@@ -84,83 +84,58 @@ The following must necessarily be achieved for the project to be considered a su
 
 \section*{Timetable}
 
-Planned starting date is 09/10/2014.
+\subsection*{Michaelmas Weeks 1 - 2}
+Read relevant literature and plan the project.\\
+{\bf Milestone:} Submit project proposal on 24/10.
 
-\begin{enumerate}
+\subsection*{Michaelmas Weeks 3 - 5}
+Further research: gain a deeper understanding of triangularization, epipolar geometry, stereo matching, constructing depth maps and constructing 3D meshes from a depth map. If the time allows it also read about volumetric reconstruction and Kalman filters.  \\
+{\bf Milestone:} Finish writing an outline of the key concepts involved in the project on 21/10 and add it to the dissertation draft.
 
-\item {\bf Slot 0: 9$^{th}$ Oct - 24$^{th}$ Oct}
-	\begin{itemize}
-		\item Read relevant literature and plan the project.
-	\end{itemize}
-	{\bf Milestone:} Submit proposal
-\item {\bf Slot 1: 25$^{th}$ Oct - 14$^{th}$ Nov}
-	\begin{itemize}
-		\item Further research: gain a deeper understanding of the techniques involved in edge detection and 3D modelling
-	\end{itemize}
-	{\bf Milestone: Have a clear understanding of the techniques needed to complete the project} 
-\item {\bf Slot 2: 15$^{th}$ Nov  - 28$^{th}$ Nov}
-	\begin{itemize}
-		\item Start implementation: implement the digital renderer
-		\item Use the renderer to design a few basic unit tests for the edge detector, dense set generator and wireframe generator.
-	\end{itemize}
-	{\bf Milestone: finish implementing the digital renderer and the test harness}
-\item {\bf Slot 3: 28$^{th}$ Nov  - 5$^{th}$ Dec}
+\subsection*{Michaelmas Weeks 6 - 7}
 \begin{itemize}
-		\item Implement the wireframe generator. This should be implemented first because it is the riskiest module of the project. 
-	\end{itemize}
-	{\bf Milestone: Pass the unit tests for the wireframe generator} 
-\item {\bf Slot 4: 6$^{th}$ Dec -  26$^{th}$ Dec}
-	\begin{itemize}
-		\item Implement dense set generator
-	\end{itemize}
-	{\bf Milestone: Pass the unit tests for the dense set generation module} 
-\item {\bf Slot 5: 27$^{th}$ Dec - 16$^{th}$ Jan}
-\begin{itemize}
-		\item Implement the edge-detector
-	\end{itemize}
-	{\bf Milestone: Finish implementation, Pass the unit tests for the edge-detection module} 
-\item {\bf Slot 6: 17$^{th}$ Jan  - 30$^{th}$ Jan}
-	\begin{itemize}
-		\item Buffer time: catch up or start doing the extensions
-		\item Write progress report
-	\end{itemize}
-	{\bf Milestone: Submit progress report} 
-\item {\bf Slot 7: 31$^{st}$ Jan - 13 $^{th}$ Feb}
-	\begin{itemize}
-		\item Further tests
-	\end{itemize}
-	{\bf Milestone: Finish writing integration tests and more in-depth unit tests} 
-\item {\bf Slot 8: 13$^{st}$ Feb - 27 $^{th}$ Feb}
-	\begin{itemize}
-		\item Debug
-	\end{itemize}
-	{\bf Milestone: Pass all of the tests}
-\item {\bf Slot 9: 27$^{st}$ Feb - 13$^{th}$ Mar}
-	\begin{itemize}
-		\item Catch-up time or extensions
-	\end{itemize}
-	{\bf Milestone: Pass all of the tests} 
-\item {\bf Slot 10: 14$^{th}$ Mar - 3$^{rd}$ Apr}
-	\begin{itemize}
-		\item Analysis
-	\end{itemize}
-	{\bf Milestone: Finish doing the evaluation graphs} 
-\item {\bf Slot 11: 4$^{th}$ Apr - 17$^{th}$ Apr}
-	\begin{itemize}
-		\item Plan and start writing the dissertation
-	\end{itemize}
-	{\bf Milestone: Write the main parts of the dissertation}
-\item {\bf Slot 12: 18$^{th}$ Apr - 8$^{th}$ May}
-	\begin{itemize}
-		\item Write the dissertation
-	\end{itemize}
-	{\bf Milestone: Finish writing dissertation}	 
-\item {\bf Slot 13: 9$^{th}$May  - 15$^{th}$May}
-	\begin{itemize}
-		\item Safety slot
-	\end{itemize}
-	{\bf Milestone: Submit dissertation} 
-\end{enumerate}
+\item Plan and design the structure of the project: split into modules and establish how they interact.
+\item Get familiarized with the open source libraries used: play with the feature matching methods from OpenCV and with POV-Ray.
+\end{itemize}
+{\bf Milestone:} Finish constructing UML diagrams on 28/11 and add them to the dissertation draft.
+
+\subsection*{Michaelmas Week 8}
+Catch-up time.
+	
+\subsection*{Vacation Weeks 1 - 2}
+Implement the test harness.\\
+{\bf Milestone:} Finish implementing the test harness on 19/12.
+
+\subsection*{Vacation Weeks 3 - 4}
+Implement the first prototype.\\
+{\bf Milestone:} Have a basic but working implementation by 02/01.
+	
+\subsection*{Vacation Weeks 5 - 6}
+Catch-up time.	
+
+\subsection*{Lent Weeks 1 - 4}
+Refine the solution. Implement as many of the prototypes defined in the \emph{Structure and Substance of the Project} section as considered necessary.\\ 
+{\bf Milestone:} Finish implementation of the core project by 13/02.
+
+\subsection*{Lent Weeks 5 - 7}
+Catch-up time. This is a good period to start working on the extensions if time allows it.\\
+{\bf Milestone:} Have a complete and working implementation by 06/03.
+
+\subsection*{Lent Week 8 - Vacation Week 1}
+Evaluate the project. Construct performance graphs.\\
+{\bf Milestone:} Finish writing an outline of the evaluation section (including evaluation graphs) by 20/03 and add it to the dissertation draft.
+
+\subsection*{Vacation Weeks 2 - 5}
+Write the dissertation.\\
+{\bf Milestone:} Have an imperfect but submittable dissertation draft by 17/04.
+
+\subsection*{Vacation Week 6 - Easter Week 1}
+Refine the dissertation. Progressively do modifications after getting feedback from supervisor.\\
+{\bf Milestone:} Finish writing and proof-reading the dissertation by 01/05.
+
+\subsection*{Easter Weeks 1 - 2}  
+Safety slot. Print and bind the dissertation.\\
+{\bf Milestone:} Submit the dissertation by 08/05
 
 \section*{References}
 
