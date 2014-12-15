@@ -1,0 +1,8 @@
+env = Environment(CPPPATH=[
+  '/usr/include/opencv'],
+  CPPFLAGS='-Wall -std=c++14',
+  LINKFLAGS='`pkg-config --libs opencv`')
+
+env.Program("PointCloudConstructor",
+  ["PointCloudConstructor.cpp",],
+  LIBS = ["boost_filesystem", "boost_system"])
