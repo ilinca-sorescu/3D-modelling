@@ -12,9 +12,9 @@
 using namespace cv;
 using namespace std;
 
-Image::Image(string folder,
-    int imgID, 
-    shared_ptr<FeatureDetector> fdetector) {
+shared_ptr<FeatureDetector> Image::fdetector;
+
+Image::Image(string folder, int imgID) {
   ostringstream imageFileName;
   imageFileName<<folder<<imgID<<".png";
 
@@ -34,7 +34,13 @@ Image::Image(string folder,
     exit(0);
 	}
 
+  if(!fdetector)
+    fdetector = make_shared<FastFeatureDetector>();
   fdetector->detect(this->imgMat, this->features);
+}
+
+void Image::setFeatureDetector(shared_ptr<FeatureDetector> fd) {
+  fdetector = fd;
 }
 
 vector<KeyPoint> Image::getFeatures() {

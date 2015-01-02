@@ -21,9 +21,8 @@ PointCloudConstructor::PointCloudConstructor(string folder) {
     if(entry.path().extension() == ".png")
       ++numberOfPics;
 
-  featureDetector = make_shared<FastFeatureDetector>();
   for(int i = 0; i != numberOfPics; ++i)
-    images.push_back(make_shared<Image>(folder, i, featureDetector));
+    images.push_back(make_shared<Image>(folder, i));
   cout<<numberOfPics<<" images were successfully loaded!"<<endl;
 }
 

@@ -12,18 +12,21 @@
 #ifndef IMAGE_H_
 #define IMAGE_H_
 
+using namespace std;
+using namespace cv;
+
 class Image {
 	public:
-    Image(std::string folder, 
-        int imgID, 
-        std::shared_ptr<cv::FeatureDetector> fdetector);
-    std::vector<cv::KeyPoint> getFeatures();
+    Image(string folder, int imgID);
+    vector<KeyPoint> getFeatures();
+    Point3f getCameraPose();
+    static void setFeatureDetector(shared_ptr<FeatureDetector> fdetector);
 
   private:
-		cv::Mat imgMat;
-    cv::Point3f cameraPose;
-    std::vector<cv::KeyPoint> features;
-
+		Mat imgMat;
+    Point3f cameraPose;
+    vector<KeyPoint> features;
+    static shared_ptr<FeatureDetector> fdetector;
 };
 
 
