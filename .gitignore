@@ -1,0 +1,9 @@
+/Debug/
+.cproject
+.project
+*.pyc
+*.o
+*.db
+PointCloudConstructor
+*.dblite
+.metadata
