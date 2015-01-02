@@ -1,5 +1,6 @@
 #include <cv.h>
 #include "PointCloudConstructor.h"
+#include "Image.h"
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <cstdlib>
@@ -19,20 +20,22 @@ PointCloudConstructor::PointCloudConstructor(string folder) {
   for(const directory_entry& entry : directory_iterator(p))
     if(entry.path().extension() == ".png")
       ++numberOfPics;
+
+  featureDetector = make_shared<FastFeatureDetector>();
   for(int i = 0; i != numberOfPics; ++i)
-    images.push_back(make_shared<Image>(folder, i));
+    images.push_back(make_shared<Image>(folder, i, featureDetector));
   cout<<numberOfPics<<" images were successfully loaded!"<<endl;
 }
 
-vector<Point3D> PointCloudConstructor::getPoints() {
-	vector<Point3D> a;
+vector<Point3f> PointCloudConstructor::getPoints() {
+	vector<Point3f> a;
 	return a;
 }
 
 int main(int argc, char *argv[]) {
 	string folder = argc>1? argv[1]:".";
-	PointCloudConstructor *pcc = new PointCloudConstructor(folder);
-	delete pcc;
+  PointCloudConstructor *pcc = new PointCloudConstructor(folder);
+  delete pcc;
   return 0;
 }
 

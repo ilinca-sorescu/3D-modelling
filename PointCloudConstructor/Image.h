@@ -5,42 +5,25 @@
  *      Author: ailinca
  */
 
+#include <cv.h>
+#include <highgui.h>
+#include <memory>
+
 #ifndef IMAGE_H_
 #define IMAGE_H_
 
-#include <fstream>
-#include <cv.h>
-#include <highgui.h>
-//#include "Point3D.h"
-
-using namespace cv;
-using namespace std;
-
 class Image {
 	public:
-		Image(string folder, int imgID) {
-			ostringstream imageFileName;
-			imageFileName<<folder<<imgID<<".png";
+    Image(std::string folder, 
+        int imgID, 
+        std::shared_ptr<cv::FeatureDetector> fdetector);
+    std::vector<cv::KeyPoint> getFeatures();
 
-			ostringstream textFileName;
-			textFileName<<folder<<imgID;
-
-			try {
-				imgMat = imread(imageFileName.str());
-
-				ifstream in(textFileName.str().c_str());
-				double x, y, z;
-				in>>x>>y>>z;
-				cameraPose = Point3d(x, y, z);
-				in.close();
-			} catch (Exception e) {
-				cout<<"Unable to open image file "<<imageFileName.str()<<" or text file "<<textFileName.str()<<endl;
-				exit(0);
-			}
-		}
-
+  private:
 		cv::Mat imgMat;
-		Point3d cameraPose;
+    cv::Point3f cameraPose;
+    std::vector<cv::KeyPoint> features;
+
 };
 
 
