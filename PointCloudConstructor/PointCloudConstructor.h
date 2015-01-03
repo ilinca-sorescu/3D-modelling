@@ -8,19 +8,25 @@
 #ifndef POINTCLOUDCONSTRUCTOR_H_
 #define POINTCLOUDCONSTRUCTOR_H_
 
+#define K_ 5
+
 #include "Image.h"
+#include "FeatureMatcher.h"
 #include <memory>
 #include <cv.h>
+#include <numeric>
 
 class PointCloudConstructor {
-	public:
+  public:
 		PointCloudConstructor(std::string folder);
     std::vector<cv::Point3f> getPoints();
 
 	private:
 		std::vector<std::shared_ptr<Image>> images;
-    std::shared_ptr<cv::FeatureDetector> featureDetector;
+    std::unique_ptr<FeatureMatcher> featureMatcher;
+    std::vector<std::vector<int>> kclosest;
+    std::vector<std::vector<std::vector<cv::DMatch>>> matches;
+    void compute_kclosest();
 };
-
 
 #endif /* POINTCLOUDCONSTRUCTOR_H_ */

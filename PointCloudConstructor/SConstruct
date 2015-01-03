@@ -4,6 +4,6 @@ env = Environment(CPPPATH=[
   LINKFLAGS='`pkg-config --libs opencv`')
 
 env.Program("PointCloudConstructor",
-  ["PointCloudConstructor.cpp","Image.cpp", "FeatureMatcher.cpp"],
+  ["PointCloudConstructor.cpp","Image.cpp", "FeatureMatcher.cpp", "ByDistanceComparator.cpp"],
   LIBS = ["boost_filesystem", "boost_system"])
 

@@ -18,15 +18,18 @@ using namespace cv;
 class Image {
 	public:
     Image(string folder, int imgID);
-    vector<KeyPoint> getFeatures();
-    Point3f getCameraPose();
-    static void setFeatureDetector(shared_ptr<FeatureDetector> fdetector);
+    vector<KeyPoint> getFeatures() const;
+    Mat getDescriptors() const;
+    Point3f getCameraPose() const;
+    Mat getMat() const;
 
   private:
 		Mat imgMat;
     Point3f cameraPose;
     vector<KeyPoint> features;
+    Mat descriptors;
     static shared_ptr<FeatureDetector> fdetector;
+    static shared_ptr<DescriptorExtractor> dextractor;
 };
 
 
