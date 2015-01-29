@@ -22,12 +22,15 @@ class Image {
     Mat getDescriptors() const;
     Point3f getCameraPose() const;
     Mat getMat() const;
+    Matx34d getCameraMatrix() const;
 
   private:
 		Mat imgMat;
     Point3f cameraPose;
+    Matx34d cameraMatrix;
     vector<KeyPoint> features;
     Mat descriptors;
+    Matx34d computeCameraMatrix(Point3f);
     static shared_ptr<FeatureDetector> fdetector;
     static shared_ptr<DescriptorExtractor> dextractor;
 };

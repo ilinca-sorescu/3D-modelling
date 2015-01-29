@@ -57,7 +57,9 @@ vector<Point3f> PointCloudConstructor::getPoints() {
   for(auto i=0u; i != images.size(); ++i) {
 
     //match features of i  against each of the closest K_ images
-    for(auto j=0; j != K_; ++j) {
+    for(auto j=0u; j != K_; ++j) {
+      if(j == images.size())
+        break;
       matches[i][j] = featureMatcher->match(i, kclosest[i][j]);
     }
   }
