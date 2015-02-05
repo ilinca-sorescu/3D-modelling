@@ -20,17 +20,18 @@ class Image {
     Image(string folder, int imgID);
     vector<KeyPoint> getFeatures() const;
     Mat getDescriptors() const;
-    Point3f getCameraPose() const;
+    Point3d getCameraPose() const;
     Mat getMat() const;
-    Matx34d getCameraMatrix() const;
-
+    Matx44d getCameraMatrix() const;
+    static Matx44d computeCameraMatrix(Point3d);
+  
   private:
 		Mat imgMat;
-    Point3f cameraPose;
-    Matx34d cameraMatrix;
+    Point3d cameraPose;
+    Matx44d cameraMatrix;
     vector<KeyPoint> features;
     Mat descriptors;
-    Matx34d computeCameraMatrix(Point3f);
+    static Point3d Normalize(Point3d);
     static shared_ptr<FeatureDetector> fdetector;
     static shared_ptr<DescriptorExtractor> dextractor;
 };

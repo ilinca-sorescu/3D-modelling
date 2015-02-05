@@ -72,6 +72,14 @@ vector<Point3f> PointCloudConstructor::getPoints() {
 
 int main(int argc, char *argv[]) {
 	string folder = argc>1? argv[1]:".";
+  
+  /* camera matrix test -- should give (0,0,0)
+  Matx44d p = Image::computeCameraMatrix(Point3d(1, 2, 3));
+  cout<<p.val[0]<<" "<<p.val[1]<<" "<<p.val[2]<<" "<<p.val[4]<<endl;
+  cout<<p.val[5]<<" "<<p.val[6]<<" "<<p.val[7]<<" "<<p.val[8]<<endl;
+  cout<<p.val[9]<<" "<<p.val[10]<<" "<<p.val[11]<<" "<<p.val[12]<<endl;
+  Matx41d r = p*Matx41d(1, 2, 3, 1);
+  cout<<r.val[0]<<" "<<r.val[1]<<" "<<r.val[2]<<endl;*/
   PointCloudConstructor *pcc = new PointCloudConstructor(folder);
   pcc->getPoints();
   delete pcc;

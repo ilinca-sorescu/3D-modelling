@@ -8,6 +8,7 @@
 #include <cv.h>
 #include "Image.h"
 #include "opencv2/nonfree/features2d.hpp"
+#include <cmath>
 
 using namespace cv;
 using namespace std;
@@ -49,7 +50,14 @@ Image::Image(string folder, int imgID) {
   dextractor->compute(this->imgMat, this->features, descriptors);
 }
 
-Matx34d Image::computeCameraMatrix(Point3f cameraPose) {
+Point3d Image::Normalize(Point3d v) {
+  double len = sqrt(v.x*v.x +
+      v.y*v.y +
+      v.z*v.z);
+  return Point3d(v.x/len, v.y/len, v.z/len);
+}
+
+Matx44d Image::computeCameraMatrix(Point3d cameraPose) {
   /*
    * The camera matrix for a camera placed in (0,0,0) looking along the
    * positive z-axis is:
@@ -62,18 +70,33 @@ Matx34d Image::computeCameraMatrix(Point3f cameraPose) {
    * [R|T] where T is the translation vector and R the rotation matrix describing
    * the camera's movement from [1].
    */
-  
+
+  Point3d L = Normalize(Point3d(-cameraPose.x, -cameraPose.y, -cameraPose.z));
+  Point3d u(0.0, 1.0, 0.0); //the up direction
+  Point3d s = Normalize(L.cross(u));
+  Point3d uprime = s.cross(L);
+
+  Matx33d R(s.x,      s.y,      s.z,
+            uprime.x, uprime.y, uprime.z,
+            -L.x,     -L.y,     -L.z);
+  Matx31d C(-cameraPose.x, -cameraPose.y, -cameraPose.z);
+  Matx31d t = R*C;
+  return Matx44d(R.val[0], R.val[1], R.val[2], t.val[0],
+                 R.val[3], R.val[4], R.val[5], t.val[1],
+                 R.val[6], R.val[7], R.val[8], t.val[2],
+                 0.0,      0.0,      0.0,      1.0);
+  /*
   Matx13d T(-cameraPose.x, -cameraPose.y, -cameraPose.z);
-  Matx33d vx(0,             0,            -cameraPose.x,
-             0,             0,             cameraPose.y,
-             cameraPose.x, -cameraPose.y,  0);
+  Matx33d vx(0,     0,     cosx,
+             0,     0,    -cosy,
+             -cosx, cosy,  0);
   Matx33d unit(1, 0, 0,
                0, 1, 0,
                0, 0, 1);
-  Matx33d R = unit + vx + vx*vx*((1+cameraPose.z)/(1-cameraPose.z*cameraPose.z));
+  Matx33d R = unit + vx + vx*vx*((1+cosz)/(1-cosz*cosz));
   return Matx34d(R.val[0], R.val[1], R.val[2], T.val[0],
                  R.val[3], R.val[4], R.val[5], T.val[1],
-                 R.val[6], R.val[7], R.val[8], T.val[2]);
+                 R.val[6], R.val[7], R.val[8], T.val[2]);*/
 }
 
 vector<KeyPoint> Image::getFeatures() const {
@@ -88,11 +111,11 @@ Mat Image::getDescriptors() const {
   return this->descriptors;
 }
 
-Point3f Image::getCameraPose() const {
+Point3d Image::getCameraPose() const {
   return cameraPose;
 }
 
-Matx34d Image::getCameraMatrix() const {
+Matx44d Image::getCameraMatrix() const {
   return cameraMatrix;
 }
 
