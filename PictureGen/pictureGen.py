@@ -5,8 +5,17 @@ import os
 import argparse
 import math
 import shutil
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 def randomCoordinatesOnSphere(r):
+    phi = random.uniform(0, 2*math.pi)
+    costetha = random.uniform(-1, 1)
+    thetha = math.acos(costetha);
+    return(r*math.sin(thetha)*math.cos(phi),
+            r*math.sin(thetha)*math.sin(phi),
+            r*math.cos(thetha));
+    """
     x = random.random() * 2 * r - r              #a random float in [-r, r]
     aux = math.sqrt(math.fabs(r*r-x*x))
     y = random.random() * 2 * aux - aux          #a random float in [-aux, aux]
@@ -15,6 +24,7 @@ def randomCoordinatesOnSphere(r):
     else:
         sign = -1
     return (x, y, math.sqrt(math.fabs(r*r-x*x-y*y))*sign)
+    """
 
 def file_extensions(extensions,fname):
     ext = os.path.splitext(fname)[1][1:]
@@ -28,6 +38,20 @@ def check_negative(value):
         parser.error("%s is an invalid positive int value" % value)
     return ivalue
 
+def plot(points):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    #ax.plot(*zip(*points))
+    x = []
+    y = []
+    z = []
+    for (_x,_y,_z) in points:
+        x.append(_x)
+        y.append(_y)
+        z.append(_z)
+
+    ax.scatter(x,y,z)
+    plt.show()
 
 dir='PovImages'
 
@@ -46,8 +70,10 @@ if(os.path.exists(dir)):
     shutil.rmtree(dir)
 os.mkdir(dir)
 
+points=[]
 for i in range(0, args.N):
     camera = randomCoordinatesOnSphere(args.d)
+    points.append(camera)
     fname = dir + '/' + str(i) + '.pov'
     pic = open(fname, 'w')
     pic.write(povTemplate.render(filename=args.filename, camera=camera))
@@ -56,4 +82,4 @@ for i in range(0, args.N):
     os.remove(fname)
     txt = open(dir + '/' + str(i),'w')
     txt.write(" ".join(str(x) for x in camera))
-
+plot(points)
