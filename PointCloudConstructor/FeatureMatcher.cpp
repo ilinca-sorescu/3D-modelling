@@ -41,8 +41,8 @@ vector<DMatch> FeatureMatcher::match(int index1, int index2, bool draw) {
   Mat descriptors1 = im1->getDescriptors();
   Mat descriptors2 = im2->getDescriptors();
 
-  assert(! im1->getDescriptors().empty());
-  assert(! im2->getDescriptors().empty());
+  assert(! descriptors1.empty());
+  assert(! descriptors2.empty());
 
   vector<DMatch> matches;
   matcher.match(descriptors1, descriptors2, matches);
