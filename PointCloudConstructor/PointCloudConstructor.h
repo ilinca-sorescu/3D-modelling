@@ -19,7 +19,9 @@
 class PointCloudConstructor {
   public:
 		PointCloudConstructor(std::string folder);
-    std::vector<cv::Point3f> getPoints();
+    std::vector<cv::Point3d> getPoints();
+   	std::vector<std::shared_ptr<Image>> getImages();
+    Point3d triangulate(DMatch, Image, Image);
 
 	private:
 		std::vector<std::shared_ptr<Image>> images;
