@@ -7,7 +7,7 @@
 class FeatureMatcher {
   public:
     FeatureMatcher(std::vector<std::shared_ptr<Image>>);
-    std::vector<cv::DMatch> match(int, int, bool draw=false);
+    std::vector<cv::DMatch> match(unsigned int, unsigned int, bool draw=false);
 
   private:
     std::vector<std::shared_ptr<Image>> images;

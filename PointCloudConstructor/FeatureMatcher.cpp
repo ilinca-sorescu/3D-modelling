@@ -28,7 +28,7 @@ vector<DMatch> filteredMatches(vector<DMatch> matches) {
   return good_matches;
 }
 
-vector<DMatch> FeatureMatcher::match(int index1, int index2, bool draw) {
+vector<DMatch> FeatureMatcher::match(unsigned int index1, unsigned int index2, bool draw) {
   assert(index1 < images.size() && index1 >= 0);
   assert(index2 < images.size() && index2 >= 0);
 
