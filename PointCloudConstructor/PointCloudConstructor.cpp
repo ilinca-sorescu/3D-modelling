@@ -56,8 +56,35 @@ vector<shared_ptr<Image>> PointCloudConstructor::getImages() {
   return images;
 }
 
-Point3d triangulate(DMatch match, Image img1, Image img2) {
-  return ;
+Point3d PointCloudConstructor::triangulate(
+    Matx44d C1, Matx44d C2, Point2d p1, Point2d p2) {
+  Matx31d X;
+
+  Matx43d A(p1.x*C1(2, 0)-C1(0, 0), p1.x*C1(2, 1)-C1(0, 1), p1.x*C1(2, 2)-C1(0, 2),
+            p1.y*C1(2, 0)-C1(1, 0), p1.y*C1(2, 1)-C1(1, 1), p1.y*C1(2, 2)-C1(1, 2),
+            p2.x*C2(2, 0)-C2(0, 0), p2.x*C2(2, 1)-C2(0, 1), p2.x*C2(2, 2)-C2(0, 2),
+            p2.y*C2(2, 0)-C2(1, 0), p2.y*C2(2, 1)-C2(1, 1), p2.y*C2(2, 2)-C2(1, 2));
+
+  Matx14d B(-p1.x*C1(2, 3)+C1(0, 3),
+            -p1.y*C1(2, 3)+C1(1, 3),
+            -p2.x*C2(2, 3)+C2(0, 3),
+            -p2.y*C2(2, 3)+C2(1, 3));
+
+  solve(A, B, X, DECOMP_SVD);
+
+  return Point3d(X(0), X(1), X(2));
+}
+
+//p1 - the 2D point (in world coordinates) corresponding to the location of
+//     the feature with id m.trainIdx in img1.
+//p2 - the 2D point (in world coordinates) corresponding to the location of
+//     the feature with id m.queryIdx in img2.
+void PointCloudConstructor::imageCoordinatesOfDMatch(
+    DMatch m,
+    shared_ptr<Image> img1,
+    shared_ptr<Image> img2,
+    Point2d& p1,
+    Point2d& p2) {
 }
 
 vector<Point3d> PointCloudConstructor::getPoints() {
@@ -82,8 +109,16 @@ vector<Point3d> PointCloudConstructor::getPoints() {
       matches[i][j] = featureMatcher->match(i, jthImage);
       vector<DMatch> &currentMatches = matches[i][j];
 
-      for(const auto &m: currentMatches)
-        generatedPoints[m.trainIdx].push_back(triangulate(m, images[i], images[jthImage]));
+      for(const auto &m: currentMatches) {
+        Matx44d cameraM1 = images[i]->getCameraMatrix();
+        Matx44d cameraM2 = images[jthImage]->getCameraMatrix();
+
+        //Get the 2D locations(in image coordinates) corresponding to the current match
+        Point2d p1, p2;
+        imageCoordinatesOfDMatch(m, images[i], images[jthImage], &p1, &p2);
+
+        generatedPoints[m.trainIdx].push_back(triangulate(cameraM1, cameraM2, p1, p2));
+      }
 
       //compute the average of the generatedPoints for each trainIdx
       for(auto gp:generatedPoints) {
