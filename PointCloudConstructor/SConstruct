@@ -1,6 +1,6 @@
 env = Environment(CPPPATH=[
   '/usr/include/opencv'],
-  CPPFLAGS='-Wall -std=c++14',
+  CPPFLAGS='-Wall -std=c++14 -g',
   LINKFLAGS='`pkg-config --libs opencv`')
 
 env.Program("PointCloudConstructor",

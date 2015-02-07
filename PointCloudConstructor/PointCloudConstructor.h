@@ -21,7 +21,7 @@ class PointCloudConstructor {
 		PointCloudConstructor(std::string folder);
     std::vector<cv::Point3d> getPoints();
    	std::vector<std::shared_ptr<Image>> getImages();
-    Point3d triangulate(Matx44d, Matx44d, Point3d, Point3d);
+    Point3d triangulate(Matx34d, Matx34d, Point2d, Point2d);
 
   private:
 		std::vector<std::shared_ptr<Image>> images;
@@ -30,16 +30,18 @@ class PointCloudConstructor {
     std::vector<std::vector<std::vector<cv::DMatch>>> matches;
     void compute_kclosest();
 
-    //p1 - the 2D point(in world coordinates) corresponding to the
-    //     location of the feature with id m.trainIdx in img1.
-    //p2 - the 2D point(in world corrdinates) corresponding to the
-    //     location of the feature with id m.queryIdx in img2.
+    //p1 - the 2D point(in camera coordinates) corresponding to the
+    //     location of the feature with id m.queryIdx in img1.
+    //p2 - the 2D point(in camera corrdinates) corresponding to the
+    //     location of the feature with id m.trainIdx in img2.
     void imageCoordinatesOfDMatch(
         DMatch m,
         shared_ptr<Image> img1,
         shared_ptr<Image> img2,
         Point2d& p1,
         Point2d& p2);
+
+    cv::Point2d scaleToCameraUnits(Point2d p, Mat image);
 };
 
 #endif /* POINTCLOUDCONSTRUCTOR_H_ */

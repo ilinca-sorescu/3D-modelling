@@ -22,13 +22,13 @@ class Image {
     Mat getDescriptors() const;
     Point3d getCameraPose() const;
     Mat getMat() const;
-    Matx44d getCameraMatrix() const;
-    static Matx44d computeCameraMatrix(Point3d);
+    Matx34d getCameraMatrix() const;
+    static Matx34d computeCameraMatrix(Point3d);
   
   private:
 		Mat imgMat;
     Point3d cameraPose;
-    Matx44d cameraMatrix;
+    Matx34d cameraMatrix;
     vector<KeyPoint> features;
     Mat descriptors;
     static Point3d Normalize(Point3d);

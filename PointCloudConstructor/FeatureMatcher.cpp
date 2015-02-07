@@ -11,9 +11,76 @@ FeatureMatcher::FeatureMatcher(vector<shared_ptr<Image>> images) {
   this->images = images;
 }
 
-vector<DMatch> filteredMatches(vector<DMatch> matches) {
-  return matches;
-  float min_dist = matches[0].distance;
+double FeatureMatcher::length(Point3d p) {
+  return sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
+}
+
+Point3d FeatureMatcher::normalize(Point3d p) {
+  double len = length(p);
+  return Point3d(p.x/len, p.y/len, p.z/len);
+}
+
+/*
+ * Compute the distance from p to (a, b).
+ */
+double FeatureMatcher::distFromPointToLine(
+    Point3d p,
+    Point3d a,
+    Point3d b) {
+
+  //u is a unit vector in the direction of the line (a, b).
+  Point3d u = normalize(b-a);
+  return length(Point3d(p-a).cross(u));
+}
+
+/*
+ * Returns only the matches which make epipolar sense.
+ * See H&Z/244 (Chapter 9) for details.
+ * matches - all of the matches have the same queryIdx and
+ *           the same trainIdx !!!! (PRECONDITION).
+ * img1 - image containing the query keypoint.
+ * img2 - image containing the train keypoint.
+ */
+vector<DMatch> FeatureMatcher::filterMatches(
+    vector<DMatch> matches,
+    shared_ptr<Image> img1,
+    shared_ptr<Image> img2) {
+
+  vector<DMatch> good_matches;
+
+  Matx34d P1 = img1->getCameraMatrix();
+  Matx34d P2 = img2->getCameraMatrix();
+  Matx43d P1Plus; //pseudo inverse of P1
+  invert(P1, P1Plus, DECOMP_SVD);
+  Point3d cameraLoc1 = img1->getCameraPose();
+  Matx41d C1(cameraLoc1.x, cameraLoc1.y, cameraLoc1.z, 1.0);
+  Matx31d P2C1 = P2*C1;
+  Point3d epipole2(P2C1(0), P2C1(1), P2C1(2));
+
+  for(auto m:matches) {
+    //find the locations of the features in img1 and img2
+    KeyPoint k1 = img1->getFeatures()[m.queryIdx];
+    KeyPoint k2 = img2->getFeatures()[m.trainIdx];
+
+    Matx31d x1(k1.pt.x, k1.pt.y, 1.0);
+    Point3d x2(k2.pt.x, k2.pt.y, 1.0);
+
+    //compute epipolar line in img2 corresponding to point x1 in img1.
+    Matx31d aux = (P2*P1Plus)*x1;
+    Point3d pointOnEpi(aux(0), aux(1), aux(2));
+
+    /*
+     * Check if x2 is on the epipolar line!
+     * The epipolar line passes through the epipole and (P2)(P1+),
+     * where P1+ is the pseudo-inverse of P1 (the camera matrix for img1).
+     * See H&Z p. 244.
+     * Note: the tolerance is needed because the pseudo-inverse
+     * is an approximation.
+     */
+    if(distFromPointToLine(x2, epipole2, pointOnEpi) < tolerance)
+      good_matches.push_back(m);
+  }
+/*  float min_dist = matches[0].distance;
   for(unsigned int i = 1; i != matches.size(); i++ ) {
     if(matches[i].distance < min_dist)
       min_dist = matches[i].distance;
@@ -24,7 +91,8 @@ vector<DMatch> filteredMatches(vector<DMatch> matches) {
     if(matches[i].distance <= 2*min_dist)
       good_matches.push_back(matches[i]);
   }
-
+*/
+  //return matches;
   return good_matches;
 }
 
@@ -49,7 +117,10 @@ vector<DMatch> FeatureMatcher::match(unsigned int index1, unsigned int index2, b
 
   assert(! matches.empty());
 
-  vector<DMatch> good_matches = filteredMatches(matches);
+  vector<DMatch> good_matches = filterMatches(
+      matches,
+      im1,
+      im2);
 
   if(draw) {
     Mat img_matches;

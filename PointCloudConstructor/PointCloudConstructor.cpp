@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include "ByDistanceComparator.h"
+#include <fstream>
 
 using namespace std;
 using namespace cv;
@@ -43,12 +44,12 @@ void PointCloudConstructor::compute_kclosest() {
   for(auto i=0u; i != images.size(); ++i) {
     ByDistanceComparator cmp(i, images);
     sort(indices.begin(), indices.end(), cmp);
-    cerr<<i<<" "; //DEBUG
+    //cerr<<i<<" "; //DEBUG
     for(auto j=1; j <= K_; ++j) {
       kclosest[i].push_back(indices[j]);
-      cerr<<indices[j]<<" "; //DEBUG
+    //  cerr<<indices[j]<<" "; //DEBUG
     }
-    cerr<<endl; //DEBUG
+    //cerr<<endl; //DEBUG
   }
 }
 
@@ -57,7 +58,7 @@ vector<shared_ptr<Image>> PointCloudConstructor::getImages() {
 }
 
 Point3d PointCloudConstructor::triangulate(
-    Matx44d C1, Matx44d C2, Point2d p1, Point2d p2) {
+    Matx34d C1, Matx34d C2, Point2d p1, Point2d p2) {
   Matx31d X;
 
   Matx43d A(p1.x*C1(2, 0)-C1(0, 0), p1.x*C1(2, 1)-C1(0, 1), p1.x*C1(2, 2)-C1(0, 2),
@@ -65,7 +66,7 @@ Point3d PointCloudConstructor::triangulate(
             p2.x*C2(2, 0)-C2(0, 0), p2.x*C2(2, 1)-C2(0, 1), p2.x*C2(2, 2)-C2(0, 2),
             p2.y*C2(2, 0)-C2(1, 0), p2.y*C2(2, 1)-C2(1, 1), p2.y*C2(2, 2)-C2(1, 2));
 
-  Matx14d B(-p1.x*C1(2, 3)+C1(0, 3),
+  Matx41d B(-p1.x*C1(2, 3)+C1(0, 3),
             -p1.y*C1(2, 3)+C1(1, 3),
             -p2.x*C2(2, 3)+C2(0, 3),
             -p2.y*C2(2, 3)+C2(1, 3));
@@ -75,19 +76,44 @@ Point3d PointCloudConstructor::triangulate(
   return Point3d(X(0), X(1), X(2));
 }
 
-//p1 - the 2D point (in world coordinates) corresponding to the location of
-//     the feature with id m.trainIdx in img1.
-//p2 - the 2D point (in world coordinates) corresponding to the location of
-//     the feature with id m.queryIdx in img2.
+//assumptions - the default height in povray is 1 (from -0.5 to 0.5).
+Point2d PointCloudConstructor::scaleToCameraUnits(
+    Point2d p, Mat m) {
+  double ratio = m.size().width/m.size().height;
+  return Point2d(p.x/m.size().width*ratio,
+                 p.y/m.size().height);
+}
+
+//p1 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.queryIdx in img1.
+//p2 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.trainIdx in img2.
 void PointCloudConstructor::imageCoordinatesOfDMatch(
     DMatch m,
     shared_ptr<Image> img1,
     shared_ptr<Image> img2,
     Point2d& p1,
     Point2d& p2) {
+
+  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
+  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
+
+  Mat m1 = img1->getMat();
+  Mat m2 = img2->getMat();
+  //translate coordinate system to camera plane
+  p1 = Point2d(feature1.pt.x - m1.size().width/2,
+               feature1.pt.y - m1.size().height/2);
+  p2 = Point2d(feature2.pt.x - m2.size().width/2,
+               feature2.pt.y - m2.size().height/2);
+
+  //scale to camera coordinates
+  p1 = scaleToCameraUnits(p1, m1);
+  p2 = scaleToCameraUnits(p2, m2);
 }
 
 vector<Point3d> PointCloudConstructor::getPoints() {
+  cout<<"***Generating the point cloud***"<<endl;
+
   vector<Point3d> points3D;
 
   compute_kclosest();
@@ -110,14 +136,14 @@ vector<Point3d> PointCloudConstructor::getPoints() {
       vector<DMatch> &currentMatches = matches[i][j];
 
       for(const auto &m: currentMatches) {
-        Matx44d cameraM1 = images[i]->getCameraMatrix();
-        Matx44d cameraM2 = images[jthImage]->getCameraMatrix();
+        Matx34d cameraM1 = images[i]->getCameraMatrix();
+        Matx34d cameraM2 = images[jthImage]->getCameraMatrix();
 
         //Get the 2D locations(in image coordinates) corresponding to the current match
         Point2d p1, p2;
-        imageCoordinatesOfDMatch(m, images[i], images[jthImage], &p1, &p2);
+        imageCoordinatesOfDMatch(m, images[i], images[jthImage], p1, p2);
 
-        generatedPoints[m.trainIdx].push_back(triangulate(cameraM1, cameraM2, p1, p2));
+        generatedPoints[m.queryIdx].push_back(triangulate(cameraM1, cameraM2, p1, p2));
       }
 
       //compute the average of the generatedPoints for each trainIdx
@@ -134,7 +160,7 @@ vector<Point3d> PointCloudConstructor::getPoints() {
 
   //DEBUG
   //featureMatcher->match(0, kclosest[0][0], true);
-
+  cout<<"The point cloud was successfully generated!"<<endl;
   return points3D;
 }
 
@@ -166,8 +192,19 @@ int main(int argc, char *argv[]) {
   }
   cout<<minx<<" "<<miny<<" "<<maxx<<" "<<maxy<<endl;
   */
-  pcc->getPoints();
+  vector<Point3d> points = pcc->getPoints();
+
+  ofstream out;
+  out.open("cloud.txt");
+  for(auto p:points)
+    out<<p.x<<" "<<p.y<<" "<<p.z<<endl;
   delete pcc;
+/*  Matx43d A(2, 3, 4,
+            5, 6, 7,
+            8, 11, 12,
+            12, 13, 14);
+  Matx34d Ainv;
+  invert(A, Ainv, DECOMP_SVD);*/
   return 0;
 }
 

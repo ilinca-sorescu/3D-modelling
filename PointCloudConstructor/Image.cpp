@@ -57,7 +57,7 @@ Point3d Image::Normalize(Point3d v) {
   return Point3d(v.x/len, v.y/len, v.z/len);
 }
 
-Matx44d Image::computeCameraMatrix(Point3d cameraPose) {
+Matx34d Image::computeCameraMatrix(Point3d cameraPose) {
   /*
    * The camera matrix for a camera placed in (0,0,0) looking along the
    * positive z-axis is:
@@ -81,10 +81,9 @@ Matx44d Image::computeCameraMatrix(Point3d cameraPose) {
             -L.x,     -L.y,     -L.z);
   Matx31d C(-cameraPose.x, -cameraPose.y, -cameraPose.z);
   Matx31d t = R*C;
-  return Matx44d(R.val[0], R.val[1], R.val[2], t.val[0],
+  return Matx34d(R.val[0], R.val[1], R.val[2], t.val[0],
                  R.val[3], R.val[4], R.val[5], t.val[1],
-                 R.val[6], R.val[7], R.val[8], t.val[2],
-                 0.0,      0.0,      0.0,      1.0);
+                 R.val[6], R.val[7], R.val[8], t.val[2]);
   /*
   Matx13d T(-cameraPose.x, -cameraPose.y, -cameraPose.z);
   Matx33d vx(0,     0,     cosx,
@@ -115,7 +114,7 @@ Point3d Image::getCameraPose() const {
   return cameraPose;
 }
 
-Matx44d Image::getCameraMatrix() const {
+Matx34d Image::getCameraMatrix() const {
   return cameraMatrix;
 }
 
