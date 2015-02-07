@@ -33,6 +33,41 @@ double FeatureMatcher::distFromPointToLine(
   return length(Point3d(p-a).cross(u));
 }
 
+//assumptions - the default height in povray is 1 (from -0.5 to 0.5).
+Point2d FeatureMatcher::scaleToCameraUnits(
+    Point2d p, Mat m) {
+  double ratio = m.size().width/m.size().height;
+  return Point2d(p.x/m.size().width*ratio,
+                 p.y/m.size().height);
+}
+
+//p1 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.queryIdx in img1.
+//p2 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.trainIdx in img2.
+void FeatureMatcher::cameraCoordinatesOfDMatch(
+    DMatch m,
+    shared_ptr<Image> img1,
+    shared_ptr<Image> img2,
+    Point2d& p1,
+    Point2d& p2) {
+
+  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
+  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
+
+  Mat m1 = img1->getMat();
+  Mat m2 = img2->getMat();
+  //translate coordinate system to camera plane
+  p1 = Point2d(feature1.pt.x - m1.size().width/2,
+               feature1.pt.y - m1.size().height/2);
+  p2 = Point2d(feature2.pt.x - m2.size().width/2,
+               feature2.pt.y - m2.size().height/2);
+
+  //scale to camera coordinates
+  p1 = scaleToCameraUnits(p1, m1);
+  p2 = scaleToCameraUnits(p2, m2);
+}
+
 /*
  * Returns only the matches which make epipolar sense.
  * See H&Z/244 (Chapter 9) for details.
@@ -59,11 +94,12 @@ vector<DMatch> FeatureMatcher::filterMatches(
 
   for(auto m:matches) {
     //find the locations of the features in img1 and img2
-    KeyPoint k1 = img1->getFeatures()[m.queryIdx];
-    KeyPoint k2 = img2->getFeatures()[m.trainIdx];
+    Point2d p1, p2;
+    cameraCoordinatesOfDMatch(m, img1, img2, p1, p2);
 
-    Matx31d x1(k1.pt.x, k1.pt.y, 1.0);
-    Point3d x2(k2.pt.x, k2.pt.y, 1.0);
+    //in homogeneous coordinates
+    Matx31d x1(p1.x, p1.y, 1.0);
+    Point3d x2(p2.x, p2.y, 1.0);
 
     //compute epipolar line in img2 corresponding to point x1 in img1.
     Matx31d aux = (P2*P1Plus)*x1;
@@ -92,7 +128,8 @@ vector<DMatch> FeatureMatcher::filterMatches(
       good_matches.push_back(matches[i]);
   }
 */
-  //return matches;
+  cout<<"!! "<<matches.size()<<" "<<good_matches.size()<<endl;
+
   return good_matches;
 }
 

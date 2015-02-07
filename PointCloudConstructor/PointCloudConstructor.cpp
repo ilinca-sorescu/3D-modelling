@@ -76,41 +76,6 @@ Point3d PointCloudConstructor::triangulate(
   return Point3d(X(0), X(1), X(2));
 }
 
-//assumptions - the default height in povray is 1 (from -0.5 to 0.5).
-Point2d PointCloudConstructor::scaleToCameraUnits(
-    Point2d p, Mat m) {
-  double ratio = m.size().width/m.size().height;
-  return Point2d(p.x/m.size().width*ratio,
-                 p.y/m.size().height);
-}
-
-//p1 - the 2D point (in camera coordinates) corresponding to the location of
-//     the feature with id m.queryIdx in img1.
-//p2 - the 2D point (in camera coordinates) corresponding to the location of
-//     the feature with id m.trainIdx in img2.
-void PointCloudConstructor::imageCoordinatesOfDMatch(
-    DMatch m,
-    shared_ptr<Image> img1,
-    shared_ptr<Image> img2,
-    Point2d& p1,
-    Point2d& p2) {
-
-  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
-  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
-
-  Mat m1 = img1->getMat();
-  Mat m2 = img2->getMat();
-  //translate coordinate system to camera plane
-  p1 = Point2d(feature1.pt.x - m1.size().width/2,
-               feature1.pt.y - m1.size().height/2);
-  p2 = Point2d(feature2.pt.x - m2.size().width/2,
-               feature2.pt.y - m2.size().height/2);
-
-  //scale to camera coordinates
-  p1 = scaleToCameraUnits(p1, m1);
-  p2 = scaleToCameraUnits(p2, m2);
-}
-
 vector<Point3d> PointCloudConstructor::getPoints() {
   cout<<"***Generating the point cloud***"<<endl;
 
@@ -141,7 +106,7 @@ vector<Point3d> PointCloudConstructor::getPoints() {
 
         //Get the 2D locations(in image coordinates) corresponding to the current match
         Point2d p1, p2;
-        imageCoordinatesOfDMatch(m, images[i], images[jthImage], p1, p2);
+        FeatureMatcher::cameraCoordinatesOfDMatch(m, images[i], images[jthImage], p1, p2);
 
         generatedPoints[m.queryIdx].push_back(triangulate(cameraM1, cameraM2, p1, p2));
       }
@@ -151,15 +116,16 @@ vector<Point3d> PointCloudConstructor::getPoints() {
         Point3d sum(0, 0, 0);
         for(auto p:gp)
           sum += p;
-        points3D.push_back(Point3d(sum.x/gp.size(),
-                                   sum.y/gp.size(),
-                                   sum.z/gp.size()));
+        if(gp.size() != 0)
+          points3D.push_back(Point3d(sum.x/gp.size(),
+                                     sum.y/gp.size(),
+                                     sum.z/gp.size()));
       }
     }
   }
 
   //DEBUG
-  //featureMatcher->match(0, kclosest[0][0], true);
+  featureMatcher->match(0, kclosest[0][0], true);
   cout<<"The point cloud was successfully generated!"<<endl;
   return points3D;
 }

@@ -13,6 +13,17 @@ class FeatureMatcher {
         unsigned int,
         bool draw=false);
 
+    //p1 - the 2D point(in camera coordinates) corresponding to the
+    //     location of the feature with id m.queryIdx in img1.
+    //p2 - the 2D point(in camera corrdinates) corresponding to the
+    //     location of the feature with id m.trainIdx in img2.
+    void static cameraCoordinatesOfDMatch(
+        DMatch m,
+        shared_ptr<Image> img1,
+        shared_ptr<Image> img2,
+        Point2d& p1,
+        Point2d& p2);
+
   private:
     std::vector<std::shared_ptr<Image>> images;
 
@@ -34,19 +45,21 @@ class FeatureMatcher {
      * The precision used to decide if a point
      * belongs to a line.
      */
-    const double tolerance = 0.005;
+    const double tolerance = 0.01;
 
     /*
      * Distance from point p to line (a, b).
      */
-    double distFromPointToLine(
+    double static distFromPointToLine(
         cv::Point3d p,
         cv::Point3d a,
         cv::Point3d b);
 
-    double length(Point3d p);
+    double static length(Point3d p);
 
-    Point3d normalize(Point3d p);
+    Point3d static normalize(Point3d p);
+
+    cv::Point2d static scaleToCameraUnits(Point2d p, Mat image);
 };
 
 #endif
