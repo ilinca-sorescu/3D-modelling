@@ -81,6 +81,12 @@ vector<DMatch> FeatureMatcher::filterMatches(
     shared_ptr<Image> img1,
     shared_ptr<Image> img2) {
 
+  float min_dist = matches[0].distance;
+  for(unsigned int i = 1; i != matches.size(); i++ ) {
+    if(matches[i].distance < min_dist)
+      min_dist = matches[i].distance;
+  }
+
   vector<DMatch> good_matches;
 
   Matx34d P1 = img1->getCameraMatrix();
@@ -113,7 +119,11 @@ vector<DMatch> FeatureMatcher::filterMatches(
      * Note: the tolerance is needed because the pseudo-inverse
      * is an approximation.
      */
-    if(distFromPointToLine(x2, epipole2, pointOnEpi) < tolerance)
+
+    //if makes epipolar sense
+    if(distFromPointToLine(x2, epipole2, pointOnEpi) < tolerance &&
+        //if the distance between the train and query features is acceptable
+        m.distance <= 2*min_dist) //!!!maybe comment this
       good_matches.push_back(m);
   }
 /*  float min_dist = matches[0].distance;
@@ -128,49 +138,62 @@ vector<DMatch> FeatureMatcher::filterMatches(
       good_matches.push_back(matches[i]);
   }
 */
-  cout<<"!! "<<matches.size()<<" "<<good_matches.size()<<endl;
+//  cout<<"!! "<<matches.size()<<" "<<good_matches.size()<<endl;
 
   return good_matches;
 }
 
 vector<DMatch> FeatureMatcher::match(unsigned int index1, unsigned int index2, bool draw) {
-  assert(index1 < images.size() && index1 >= 0);
-  assert(index2 < images.size() && index2 >= 0);
+  try {
+    if(index1 >= images.size())
+      throw new Exception();
+    if(index2 >= images.size())
+      throw new Exception();
 
-  shared_ptr<Image> im1 = images[index1];
-  shared_ptr<Image> im2 = images[index2];
+    shared_ptr<Image> im1 = images[index1];
+    shared_ptr<Image> im2 = images[index2];
 
-  assert(! im1->getFeatures().empty());
-  assert(! im2->getFeatures().empty());
+    if(im1->getFeatures().empty())
+      throw new Exception();
+    if(im2->getFeatures().empty())
+      throw new Exception();
 
-  Mat descriptors1 = im1->getDescriptors();
-  Mat descriptors2 = im2->getDescriptors();
+    Mat descriptors1 = im1->getDescriptors();
+    Mat descriptors2 = im2->getDescriptors();
 
-  assert(! descriptors1.empty());
-  assert(! descriptors2.empty());
+    if(descriptors1.empty())
+      throw new Exception();
+    if(descriptors2.empty())
+      throw new Exception();
 
-  vector<DMatch> matches;
-  matcher.match(descriptors1, descriptors2, matches);
+    vector<DMatch> matches;
+    matcher.match(descriptors1, descriptors2, matches);
 
-  assert(! matches.empty());
+    if(matches.empty())
+      throw new Exception();
 
-  vector<DMatch> good_matches = filterMatches(
-      matches,
-      im1,
-      im2);
+   vector<DMatch> good_matches = filterMatches(
+        matches,
+        im1,
+        im2);
 
-  if(draw) {
-    Mat img_matches;
-    drawMatches(
-        im1->getMat(), im1->getFeatures(),
-        im2->getMat(), im2->getFeatures(),
-        good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
-        vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-    ostringstream title;
-    title << "Matches: "<<index1<<", "<<index2;
-    imshow(title.str(), img_matches);
-    waitKey(0);
-    destroyWindow(title.str());
+    if(draw) {
+      Mat img_matches;
+      drawMatches(
+          im1->getMat(), im1->getFeatures(),
+          im2->getMat(), im2->getFeatures(),
+          good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
+          vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+      ostringstream title;
+      title << "Matches: "<<index1<<", "<<index2;
+      imshow(title.str(), img_matches);
+      waitKey(0);
+      destroyWindow(title.str());
+    }
+    return good_matches;
+  } catch(...) {
+    vector<DMatch> empty;
+    return empty;
   }
-  return good_matches;
 }
+

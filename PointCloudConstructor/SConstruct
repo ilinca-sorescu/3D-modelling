@@ -1,9 +1,25 @@
+import os
+
 env = Environment(CPPPATH=[
-  '/usr/include/opencv'],
+  '/usr/include/opencv',
+  '/usr/include/pcl-1.7',
+  '/usr/include/eigen3',
+  '/usr/include/vtk-6.1'],
   CPPFLAGS='-Wall -std=c++14 -g',
   LINKFLAGS='`pkg-config --libs opencv`')
 
+#pcl_libs = [ lib[3:-3] for lib in os.listdir("/usr/lib")
+#             if lib.startswith("libpcl") and lib.endswith(".so")]
+
 env.Program("PointCloudConstructor",
-  ["PointCloudConstructor.cpp","Image.cpp", "FeatureMatcher.cpp", "ByDistanceComparator.cpp"],
-  LIBS = ["boost_filesystem", "boost_system"])
+  ["PointCloudConstructor.cpp",
+  "Image.cpp",
+  "FeatureMatcher.cpp",
+  "ByDistanceComparator.cpp",
+  "StatisticalRemovalFilter.cpp"],
+  LIBS = ["boost_filesystem",
+    "boost_system",
+    "pcl_common",
+    "pcl_filters",
+    "pcl_io"])
 

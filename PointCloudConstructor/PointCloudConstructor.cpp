@@ -7,12 +7,20 @@
 #include <algorithm>
 #include "ByDistanceComparator.h"
 #include <fstream>
+#include <pcl/pcl_base.h>
+#include "StatisticalRemovalFilter.h"
+#include <pcl/io/pcd_io.h>
+
+#define white 16777215
 
 using namespace std;
 using namespace cv;
 using namespace boost::filesystem;
+using namespace pcl;
 
-PointCloudConstructor::PointCloudConstructor(string folder) {
+PointCloudConstructor::PointCloudConstructor(
+    string folder,
+    int wantedNumberOfPics) { //default: -1
   path p(folder);
 	if(!is_directory(folder)) {
 		cout<<"Error: unable to open input directory."<<endl;
@@ -24,6 +32,15 @@ PointCloudConstructor::PointCloudConstructor(string folder) {
     if(entry.path().extension() == ".png")
       ++numberOfPics;
 
+  if(numberOfPics < wantedNumberOfPics) {
+    cout<<"Sorry - There are not enough pictures in the "<<
+      "specified folder."<<endl;
+    exit(1);
+  }
+
+  if(wantedNumberOfPics != -1 &&
+      numberOfPics > wantedNumberOfPics)
+    numberOfPics = wantedNumberOfPics;
   for(auto i = 0; i != numberOfPics; ++i)
     images.push_back(make_shared<Image>(folder, i));
   cout<<numberOfPics<<" images were successfully loaded!"<<endl;
@@ -34,6 +51,11 @@ PointCloudConstructor::PointCloudConstructor(string folder) {
   matches.resize(images.size());
   for(auto& m:matches)
     m.resize(K_);
+
+  populateCloud(this->getPoints());
+  cout<<cloud->points.size()<<" points before statistical removal."<<endl;
+  cloud = StatisticalRemovalFilter(cloud).getFilteredCloud();
+  cout<<cloud->points.size()<<" points after statistical removal."<<endl;
 }
 
 void PointCloudConstructor::compute_kclosest() {
@@ -130,6 +152,34 @@ vector<Point3d> PointCloudConstructor::getPoints() {
   return points3D;
 }
 
+void PointCloudConstructor::populateCloud(
+    vector<Point3d> points) {
+  cloud.reset(new PointCloud<PointXYZRGB>);
+  for(auto i:points) {
+    PointXYZRGB p;
+    p.x = i.x;
+    p.y = i.y;
+    p.z = i.z;
+    p.rgb = white;
+    cloud->push_back(p);
+  }
+  cloud->height = 1;
+  cloud->width = (uint32_t)cloud->points.size();
+}
+
+void PointCloudConstructor::cloudToPCD(string outFile) {
+  pcl::io::savePCDFileASCII(outFile, *cloud);
+}
+
+void PointCloudConstructor::cloudToTxt(String outFile) {
+  ofstream  out(outFile);
+  for (auto i=0u; i < cloud->points.size(); i++) {
+    PointXYZRGB p = cloud->points[i];
+    out << p.x << " " << p.y << " " << p.z << endl;
+  }
+  out.close();
+}
+
 int main(int argc, char *argv[]) {
 	string folder = argc>1? argv[1]:".";
 
@@ -141,7 +191,30 @@ int main(int argc, char *argv[]) {
   Matx41d r = p*Matx41d(1, 2, 3, 1);
   cout<<r.val[0]<<" "<<r.val[1]<<" "<<r.val[2]<<endl;*/
 
- PointCloudConstructor *pcc = new PointCloudConstructor(folder);
+  int NumberOfPics = -1;
+  try {
+    if(argc > 2)
+      NumberOfPics = stoi(argv[2]);
+    if(NumberOfPics < 4)
+      throw new Exception();
+  } catch(...){
+    cout<<"The second argument represents the maximum number "<<
+      "of pictures taken as input. "<<
+      "This number must be greater than 4."<<endl;
+    return 0;
+  }
+  PointCloudConstructor *pcc;
+  if(argc < 2)
+    pcc = new PointCloudConstructor(folder);
+  else
+    pcc = new PointCloudConstructor(folder, NumberOfPics);
+  pcc->cloudToTxt("cloud.txt");
+  pcc->cloudToPCD("cloud.pcd");
+  delete pcc;
+//  PointCloudConstructor *pcc;
+//  if(argc < 2)
+//    pcc = new PointCloudConstructor(folder);
+//    pcc = new PointCloudConstructor(folder, NumberOfPics);
 /*  vector<shared_ptr<Image>> imgs = pcc->getImages();
   float minx=15, miny=15, maxx=-15, maxy=-15;
   for(auto x:imgs) {
@@ -158,13 +231,17 @@ int main(int argc, char *argv[]) {
   }
   cout<<minx<<" "<<miny<<" "<<maxx<<" "<<maxy<<endl;
   */
-  vector<Point3d> points = pcc->getPoints();
-
-  ofstream out;
+  //vector<Point3d> points = pcc->getPoints();
+//  exportPCLCloud(
+//      statisticalRemovalFilter(
+//        populatePCLCloud(pcc->getPoints())),
+//      "cloud.PCD");
+/*  ofstream out;
   out.open("cloud.txt");
   for(auto p:points)
     out<<p.x<<" "<<p.y<<" "<<p.z<<endl;
-  delete pcc;
+ */
+//  delete pcc;
 /*  Matx43d A(2, 3, 4,
             5, 6, 7,
             8, 11, 12,
