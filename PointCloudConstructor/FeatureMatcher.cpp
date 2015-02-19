@@ -121,9 +121,9 @@ vector<DMatch> FeatureMatcher::filterMatches(
      */
 
     //if makes epipolar sense
-    if(distFromPointToLine(x2, epipole2, pointOnEpi) < tolerance &&
+    if(distFromPointToLine(x2, epipole2, pointOnEpi) < tolerance)// &&
         //if the distance between the train and query features is acceptable
-        m.distance <= 2*min_dist) //!!!maybe comment this
+     //   m.distance <= 2*min_dist) //!!!maybe comment this
       good_matches.push_back(m);
   }
 /*  float min_dist = matches[0].distance;

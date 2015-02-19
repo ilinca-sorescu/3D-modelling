@@ -26,7 +26,7 @@ int main (int argc, char** argv)
   tree->setInputCloud (cloud);
   n.setInputCloud (cloud);
   n.setSearchMethod (tree);
-  n.setKSearch (20);
+  n.setKSearch(20);
   n.compute (*normals);
   //* normals should not contain the point normals + surface curvatures
 
@@ -44,14 +44,14 @@ int main (int argc, char** argv)
   pcl::PolygonMesh triangles;
 
   // Set the maximum distance between connected points (maximum edge length)
-  gp3.setSearchRadius (25);//0.025);
+  gp3.setSearchRadius (0.25);
 
   // Set typical values for the parameters
-  gp3.setMu (2.5);//*5);
-  gp3.setMaximumNearestNeighbors (3699);//100);//4610);//100);
-  gp3.setMaximumSurfaceAngle(M_PI/4);//*5); // 45 degrees
-  gp3.setMinimumAngle(M_PI/18);//*5); // 10 degrees
-  gp3.setMaximumAngle(2*M_PI/3);//*5); // 120 degrees
+  gp3.setMu (25);
+  gp3.setMaximumNearestNeighbors (4000);//4610);//100);
+  gp3.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
+  gp3.setMinimumAngle(M_PI/20); // 10 degrees
+  gp3.setMaximumAngle(2*M_PI/3); // 120 degrees
   gp3.setNormalConsistency(false);
 
   // Get result

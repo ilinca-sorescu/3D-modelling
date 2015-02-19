@@ -9,6 +9,7 @@
 #include <fstream>
 #include <pcl/pcl_base.h>
 #include "StatisticalRemovalFilter.h"
+#include "RadiusOutlierRemovalFilter.h"
 #include <pcl/io/pcd_io.h>
 
 #define white 16777215
@@ -53,6 +54,10 @@ PointCloudConstructor::PointCloudConstructor(
     m.resize(K_);
 
   populateCloud(this->getPoints());
+  cout<<cloud->points.size()<<" points before radius outlier removal."<<endl;
+  cloud = RadiusOutlierRemovalFilter(cloud).getFilteredCloud();
+  cout<<cloud->points.size()<<" points after radius outlier removal."<<endl;
+
   cout<<cloud->points.size()<<" points before statistical removal."<<endl;
   cloud = StatisticalRemovalFilter(cloud).getFilteredCloud();
   cout<<cloud->points.size()<<" points after statistical removal."<<endl;
@@ -98,10 +103,44 @@ Point3d PointCloudConstructor::triangulate(
   return Point3d(X(0), X(1), X(2));
 }
 
+vector<Point3d> PointCloudConstructor::filterByReprojectionError(
+    vector<pair<Point3d, double>> points) {
+
+  //replace with statistical filtering if necessary
+  vector<Point3d> good_points;
+  for(auto i = 0u; i != points.size(); ++i)
+    //if the reprojection error is small
+    if(points[i].second <= 0.0001)
+      good_points.push_back(points[i].first);
+
+  cout<<"Before filtering by reprojection error: "<<points.size()<<endl;
+  cout<<"After filtering by reprojection error: "<<good_points.size()<<endl;
+
+  return good_points;
+}
+
+double distance(Point2d a, Point2d b) {
+  Point2d p = a-b;
+  return sqrt(p.x*p.x + p.y*p.y);
+}
+
+double PointCloudConstructor::reprojectionError(
+    Matx34d CameraMat,
+    Point2d x,
+    Point3d X) {
+
+  //compute error in equ. x = Camera * X (in homogeneous coords.)
+  Matx41d XHomogeneous(X.x, X.y, X.z, 1);
+  Matx31d result = CameraMat * XHomogeneous;
+  Point2d xReprojected(result(0)/result(2),
+                       result(1)/result(2));
+  return distance(x, xReprojected);
+}
+
 vector<Point3d> PointCloudConstructor::getPoints() {
   cout<<"***Generating the point cloud***"<<endl;
 
-  vector<Point3d> points3D;
+  vector<pair<Point3d, double>> points3D;
 
   compute_kclosest();
   for(auto i=0u; i != images.size(); ++i) {
@@ -109,7 +148,7 @@ vector<Point3d> PointCloudConstructor::getPoints() {
     //generatedPoints[x] = the 3D points resulted from triangulating
     //                     the xth feature of image i with the corresponding
     //                     feature in one of the kclosest images to i.
-    vector<vector<Point3d>> generatedPoints;
+    vector<vector<pair<Point3d, double>>> generatedPoints;
     generatedPoints.resize(images[i]->getFeatures().size());
 
     //match features of i  against each of the closest K_ images
@@ -119,7 +158,7 @@ vector<Point3d> PointCloudConstructor::getPoints() {
 
       //index of jth closest image to i
       int jthImage = kclosest[i][j];
-      matches[i][j] = featureMatcher->match(i, jthImage);
+      matches[i][j] = featureMatcher->match(i, jthImage);//, true); //delete true!
       vector<DMatch> &currentMatches = matches[i][j];
 
       for(const auto &m: currentMatches) {
@@ -130,18 +169,28 @@ vector<Point3d> PointCloudConstructor::getPoints() {
         Point2d p1, p2;
         FeatureMatcher::cameraCoordinatesOfDMatch(m, images[i], images[jthImage], p1, p2);
 
-        generatedPoints[m.queryIdx].push_back(triangulate(cameraM1, cameraM2, p1, p2));
+        Point3d X = triangulate(cameraM1, cameraM2, p1, p2);
+        generatedPoints[m.queryIdx].push_back(make_pair(
+            X,
+            max(reprojectionError(cameraM1, p1, X),
+                reprojectionError(cameraM2, p2, X))));
       }
 
       //compute the average of the generatedPoints for each trainIdx
       for(auto gp:generatedPoints) {
-        Point3d sum(0, 0, 0);
-        for(auto p:gp)
-          sum += p;
-        if(gp.size() != 0)
-          points3D.push_back(Point3d(sum.x/gp.size(),
-                                     sum.y/gp.size(),
-                                     sum.z/gp.size()));
+        Point3d sum3D(0, 0, 0);
+        double errorSum = 0;
+        for(auto p:gp) {
+          sum3D += p.first;
+          errorSum += p.second;
+        }
+        if(gp.size() != 0) {
+          Point3d X(sum3D.x/gp.size(),
+                    sum3D.y/gp.size(),
+                    sum3D.z/gp.size());
+          double reprojectionError = errorSum/gp.size();
+          points3D.push_back(make_pair(X, reprojectionError));
+        }
       }
     }
   }
@@ -149,7 +198,7 @@ vector<Point3d> PointCloudConstructor::getPoints() {
   //DEBUG
   featureMatcher->match(0, kclosest[0][0], true);
   cout<<"The point cloud was successfully generated!"<<endl;
-  return points3D;
+  return filterByReprojectionError(points3D);
 }
 
 void PointCloudConstructor::populateCloud(

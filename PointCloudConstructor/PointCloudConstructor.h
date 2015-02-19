@@ -8,7 +8,7 @@
 #ifndef POINTCLOUDCONSTRUCTOR_H_
 #define POINTCLOUDCONSTRUCTOR_H_
 
-#define K_ 1
+#define K_ 1//4
 
 #include "Image.h"
 #include "FeatureMatcher.h"
@@ -37,6 +37,14 @@ class PointCloudConstructor {
     std::vector<std::vector<std::vector<cv::DMatch>>> matches;
     void compute_kclosest();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+    std::vector<cv::Point3d> filterByReprojectionError(
+        std::vector<std::pair<cv::Point3d, double>>);
+
+    //computes error in equ. x = CameraMat * X
+    double reprojectionError(
+        cv::Matx34d,
+        cv::Point2d,
+        cv::Point3d);
 };
 
 #endif /* POINTCLOUDCONSTRUCTOR_H_ */

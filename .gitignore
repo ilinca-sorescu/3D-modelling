@@ -4,6 +4,21 @@
 *.pyc
 *.o
 *.db
-PointCloudConstructor
 *.dblite
 .metadata
+*.pcd
+*.vtk
+*.txt
+*.ply
+*/Debug/
+/Inputs/
+/Point\ Clouds/
+*/PointCloudConstructor
+*/CMakeFiles
+*/cgal_test
+SurfaceReconstruction/greedy_projection
+PointCloudConstructor/PointCloudConstructor
+SurfaceReconstruction/cmake_install.cmake
+SurfaceReconstruction/Makefile
+PointCloudConstructor/Point3D.h
+PointCloudConstructor/~
