@@ -2,6 +2,7 @@
 #include "PointCloudConstructor.h"
 #include "Image.h"
 #include <boost/filesystem.hpp>
+#include <boost/thread/executors/basic_thread_pool.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <cstdlib>
 #include <algorithm>
@@ -42,8 +43,14 @@ PointCloudConstructor::PointCloudConstructor(
   if(wantedNumberOfPics != -1 &&
       numberOfPics > wantedNumberOfPics)
     numberOfPics = wantedNumberOfPics;
+
+  images.resize(numberOfPics);
+  boost::basic_thread_pool pool(8);
   for(auto i = 0; i != numberOfPics; ++i)
-    images.push_back(make_shared<Image>(folder, i));
+    pool.submit([this, i, folder]() {
+      images[i] = make_shared<Image>(folder, i);});
+  pool.close();
+  pool.join();
   cout<<numberOfPics<<" images were successfully loaded!"<<endl;
 
   featureMatcher = unique_ptr<FeatureMatcher>(new FeatureMatcher(images));
@@ -53,6 +60,8 @@ PointCloudConstructor::PointCloudConstructor(
   for(auto& m:matches)
     m.resize(K_);
 
+//  normalizeCloudValues();
+
   populateCloud(this->getPoints());
   cout<<cloud->points.size()<<" points before radius outlier removal."<<endl;
   cloud = RadiusOutlierRemovalFilter(cloud).getFilteredCloud();
@@ -61,6 +70,7 @@ PointCloudConstructor::PointCloudConstructor(
   cout<<cloud->points.size()<<" points before statistical removal."<<endl;
   cloud = StatisticalRemovalFilter(cloud).getFilteredCloud();
   cout<<cloud->points.size()<<" points after statistical removal."<<endl;
+
 }
 
 void PointCloudConstructor::compute_kclosest() {
@@ -80,12 +90,36 @@ void PointCloudConstructor::compute_kclosest() {
   }
 }
 
+double inline abs(double x) {
+  return x<0?-x:x;
+}
+
+double inline max(double x, double y) {
+  return x<y?y:x;
+}
+
+void PointCloudConstructor::normalizeCloudValues() {
+  double maxv = 0;
+  for(auto p:cloud->points) {
+      maxv = max(maxv,
+        max(abs(p.x),
+          max(abs(p.y),
+            abs(p.z))));
+  }
+  cout<<maxv<<endl;
+  for(auto p:cloud->points) {
+      p.x/=maxv;
+      p.y/=maxv;
+      p.z/=maxv;
+  }
+}
+
 vector<shared_ptr<Image>> PointCloudConstructor::getImages() {
   return images;
 }
 
 Point3d PointCloudConstructor::triangulate(
-    Matx34d C1, Matx34d C2, Point2d p1, Point2d p2) {
+    Matx34d C1, Matx34d C2, Point2d p1, Point2d p2, int i, int j) {
   Matx31d X;
 
   Matx43d A(p1.x*C1(2, 0)-C1(0, 0), p1.x*C1(2, 1)-C1(0, 1), p1.x*C1(2, 2)-C1(0, 2),
@@ -99,6 +133,19 @@ Point3d PointCloudConstructor::triangulate(
             -p2.y*C2(2, 3)+C2(1, 3));
 
   solve(A, B, X, DECOMP_SVD);
+
+  if(X(0) > 40 || X(0) < -40 ||
+     X(1) > 40 || X(1) < -40 ||
+     X(2) > 40 || X(2) < -40) {
+    cout<<"point3d: "<<X(0)<<" "<<X(1)<<" "<<X(2)<<endl;
+    cout<<"point2d: "<<p1.x<<" "<<p1.y<<" "<<i<<" "<<
+      reprojectionError(C1, p1, Point3d(X(0), X(1), X(2)))<<endl;
+    cout<<"point2d: "<<p2.x<<" "<<p2.y<<" "<<j<<" "<<
+      reprojectionError(C2, p2, Point3d(X(0), X(1), X(2)))<<endl;
+    Matx41d R = A*X;
+    cout<<R(0)<<" "<<R(1)<<" "<<R(2)<<" "<<R(3)<<endl;
+    cout<<B(0)<<" "<<B(1)<<" "<<B(2)<<" "<<B(3)<<endl<<endl;
+  }
 
   return Point3d(X(0), X(1), X(2));
 }
@@ -169,7 +216,7 @@ vector<Point3d> PointCloudConstructor::getPoints() {
         Point2d p1, p2;
         FeatureMatcher::cameraCoordinatesOfDMatch(m, images[i], images[jthImage], p1, p2);
 
-        Point3d X = triangulate(cameraM1, cameraM2, p1, p2);
+        Point3d X = triangulate(cameraM1, cameraM2, p1, p2, i, jthImage);
         generatedPoints[m.queryIdx].push_back(make_pair(
             X,
             max(reprojectionError(cameraM1, p1, X),
@@ -204,6 +251,7 @@ vector<Point3d> PointCloudConstructor::getPoints() {
 void PointCloudConstructor::populateCloud(
     vector<Point3d> points) {
   cloud.reset(new PointCloud<PointXYZRGB>);
+  cerr<<"Number of points: "<<points.size()<<endl;
   for(auto i:points) {
     PointXYZRGB p;
     p.x = i.x;

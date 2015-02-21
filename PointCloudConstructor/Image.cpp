@@ -24,17 +24,19 @@ Image::Image(string folder, int imgID) {
   textFileName<<folder<<"/"<<imgID;
 
   try {
-    cout<<imageFileName.str()<<"   ";
+    ostringstream messageToPrint;
+    messageToPrint<<imageFileName.str()<<"   ";
     imgMat = imread(imageFileName.str(), 0); //0 for greyscale
-    cout<<imgMat.size()<<"   ";
+    messageToPrint<<imgMat.size()<<"   ";
 
 		ifstream in(textFileName.str().c_str());
 		double x, y, z;
 	  in>>x>>y>>z;
-    cerr<<x<<" "<<y<<" "<<z<<endl;
+    messageToPrint<<x<<" "<<y<<" "<<z<<endl;
     cameraPose = Point3f(x, y, z);
     cameraMatrix = computeCameraMatrix(cameraPose);
 	  in.close();
+    cout<<messageToPrint.str()<<endl;
   } catch (Exception e) {
 	  cout<<"Unable to open image file "<<imageFileName.str()<<" or text file "<<textFileName.str()<<endl;
     exit(0);
@@ -43,7 +45,6 @@ Image::Image(string folder, int imgID) {
   if(!fdetector)
     fdetector = make_shared<SiftFeatureDetector>();
   fdetector->detect(this->imgMat, this->features);
-  cout<<this->features.size()<<endl;
 
   if(!dextractor)
     dextractor = make_shared<SiftDescriptorExtractor>();

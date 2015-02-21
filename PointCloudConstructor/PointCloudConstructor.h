@@ -24,10 +24,11 @@ class PointCloudConstructor {
         std::string folder,
         int wantedNumberOfPics = -1);
    	std::vector<std::shared_ptr<Image>> getImages();
-    Point3d triangulate(Matx34d, Matx34d, Point2d, Point2d);
+    Point3d triangulate(Matx34d, Matx34d, Point2d, Point2d, int, int);
     void populateCloud(std::vector<cv::Point3d>);
     void cloudToPCD(String PCDFileName); //Point Cloud Data (out) file
     void cloudToTxt(String txtFileName);
+    void normalizeCloudValues(); //make all point coords. in [-1, 1]
 
   private:
     std::vector<cv::Point3d> getPoints();
