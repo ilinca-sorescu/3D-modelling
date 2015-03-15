@@ -12,6 +12,7 @@
 #include "StatisticalRemovalFilter.h"
 #include "RadiusOutlierRemovalFilter.h"
 #include <pcl/io/pcd_io.h>
+#include <mutex>
 
 #define white 16777215
 #define epsilon 0.001
@@ -384,40 +385,51 @@ vector<pair<Point3d, double>> PointCloudConstructor::computePoints_ratioInterval
 
   vector<pair<Point3d, double>> points3D;
   const double MinRatio=0.0524;
-  const double MaxRatio=0.09; //was 0.2
-  double sum = 0;
-  int num = 0;
+  const double MaxRatio=0.8;//used to be 0.2
+ // double sum = 0;
+ // int num = 0;
   double radius = distance(images[1]->getCameraPose(), Point3d(0, 0, 0));
-  for(auto p1 = 0u; p1 != images.size(); ++p1) {
 
-    //p2 = index of the closest image to p1 with ratio greater than MinRatio
-    int p2;
+  mutex push_backMutex;
 
-    //smallest distance whose ratio is greater than MinRatio
-   // double minDist = numeric_limits<double>::max();
+  boost::basic_thread_pool pool(8);
+  for(auto p1 = 0u; p1 != images.size(); ++p1)
+    pool.submit([this, p1, radius, &points3D, MinRatio, MaxRatio, &push_backMutex]() {
+      //p2 = index of the closest image to p1 with ratio greater than MinRatio
+     int p2;
 
-    for(auto i = 0u; i != images.size(); ++i) {
-      if(i == p1)
-        continue;
-      double dist = distance(images[p1]->getCameraPose(),
-                             images[i]->getCameraPose());
-   /*  if(dist < minDist && dist/radius > MinRatio) {
-        minDist = dist;
-        p2 = i;
+      //smallest distance whose ratio is greater than MinRatio
+      // double minDist = numeric_limits<double>::max();
+
+      for(auto i = 0u; i != images.size(); ++i) {
+        if(i == p1)
+          continue;
+        double dist = distance(images[p1]->getCameraPose(),
+                               images[i]->getCameraPose());
+    /*  if(dist < minDist && dist/radius > MinRatio) {
+          minDist = dist;
+          p2 = i;
+        }
       }
+      if(minDist/radius > MaxRatio)
+       continue;
+      cout<<p1<<" "<<p2<<" "<<minDist<<endl;
+      sum += minDist;
+      ++num;*/
+      if(!(dist/radius > MinRatio && dist/radius < MaxRatio)) continue;
+      p2 = i;
+      //cout<<p1<<" "<<p2<<" "<<endl;
+      vector<TriangulatedPoint> triangulatedPoints = computePointsBetweenTwoImgs(p1, p2);
+      push_backMutex.lock();
+      for(auto tp:triangulatedPoints)
+        points3D.push_back(make_pair(tp.point, tp.reprojectionError));
+      push_backMutex.unlock();
     }
-    if(minDist/radius > MaxRatio)
-      continue;
-    //cout<<p1<<" "<<p2<<" "<<minDist<<endl;
-    sum += minDist;
-    ++num;*/
-    if(!(dist/radius > MinRatio && dist/radius < MaxRatio)) continue;
-    p2 = i;
-    vector<TriangulatedPoint> triangulatedPoints = computePointsBetweenTwoImgs(p1, p2);
-    for(auto tp:triangulatedPoints)
-      points3D.push_back(make_pair(tp.point, tp.reprojectionError));
-  } }
-  cout<<"mean dist: "<<sum/num<<endl;
+  });
+  pool.close();
+  pool.join();
+
+  //  cout<<"mean dist: "<<sum/num<<endl;
   cout<<MinRatio*radius<<endl;
   cout<<"The point cloud was successfully generated (using ratio interval)!"<<endl;
   return points3D;
