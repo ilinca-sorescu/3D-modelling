@@ -61,17 +61,25 @@ PointCloudConstructor::PointCloudConstructor(
   for(auto& m:matches)
     m.resize(K_);
 
-//  normalizeCloudValues();
-
-  populateCloud(this->computePoints());
- /* cout<<cloud->points.size()<<" points before radius outlier removal."<<endl;
+  populateCloud(sortPoints(this->computePoints()));
+  cout<<cloud->points.size()<<" points before radius outlier removal."<<endl;
   cloud = RadiusOutlierRemovalFilter(cloud).getFilteredCloud();
   cout<<cloud->points.size()<<" points after radius outlier removal."<<endl;
 
   cout<<cloud->points.size()<<" points before statistical removal."<<endl;
   cloud = StatisticalRemovalFilter(cloud).getFilteredCloud();
   cout<<cloud->points.size()<<" points after statistical removal."<<endl;
-*/
+
+  normalizeCloudValues();
+}
+
+bool comparePoints(Point3d p1, Point3d p2) {
+  return p1.y < p2.y;
+}
+
+vector<Point3d> PointCloudConstructor::sortPoints(vector<Point3d> points) {
+  sort(points.begin(), points.end(), comparePoints);
+  return points;
 }
 
 void PointCloudConstructor::compute_kclosest() {
@@ -198,7 +206,7 @@ Point3d PointCloudConstructor::ReadjustedTriangulation(
 //    double error = max(reprojectionError(C1, p1, Point3d(X(0), X(1), X(2))),
 //                     reprojectionError(C2, p2, Point3d(X(0), X(1), X(2))));
 
-/*    if((initialX.x > 12 || initialX.x < -12 ||
+    if((initialX.x > 12 || initialX.x < -12 ||
         initialX.y > 12 || initialX.y < -12 ||
         initialX.z > 12 || initialX.z < -12)) {
       Matx41d R = A*X;
@@ -217,7 +225,7 @@ Point3d PointCloudConstructor::ReadjustedTriangulation(
       cout<<A(1, 0)<<" "<<A(1, 1)<<" "<<A(1, 2)<<endl;
       cout<<A(2, 0)<<" "<<A(2, 1)<<" "<<A(2, 2)<<endl;
       cout<<A(3, 0)<<" "<<A(3, 1)<<" "<<A(3, 2)<<endl<<endl;
-    }*/
+    }
   //  cout<<"reweighted X: "<<X(0)<<" "<<X(1)<<" "<<X(2)<<" "<<w1<<" "<<w2<<endl;
   }
 
@@ -237,7 +245,7 @@ vector<Point3d> PointCloudConstructor::filterByReprojectionError(
   vector<Point3d> good_points;
   for(auto i = 0u; i != points.size(); ++i)
     //if the reprojection error is small
-    if(points[i].second <= 0.0003)
+    if(points[i].second <= 0.0001) //changed this from 0.0003
       good_points.push_back(points[i].first);
 
   cout<<"Before filtering by reprojection error: "<<points.size()<<endl;
@@ -264,9 +272,9 @@ double PointCloudConstructor::reprojectionError(
   return distance(x, xReprojected);
 }
 
-//decides which strategy is used for computing points
+//decides which strategy is used for computing points and filter
 vector<Point3d> PointCloudConstructor::computePoints() {
-  return computePoints_kclosest();
+  return filterByReprojectionError(computePoints_ratioInterval());//_kclosest());
 }
 
 vector<PointCloudConstructor::TriangulatedPoint> PointCloudConstructor::computePointsBetweenTwoImgs(int i, int j) {
@@ -297,7 +305,7 @@ vector<PointCloudConstructor::TriangulatedPoint> PointCloudConstructor::computeP
       return tPoints;
 }
 
-vector<Point3d> PointCloudConstructor::computePoints_kclosest() {
+vector<pair<Point3d, double>> PointCloudConstructor::computePoints_kclosest() {
   cout<<"***Generating the point cloud***"<<endl;
 
   vector<pair<Point3d, double>> points3D;
@@ -367,8 +375,52 @@ vector<Point3d> PointCloudConstructor::computePoints_kclosest() {
 
   //DEBUG
   //featureMatcher->match(984, kclosest[984][0], true);
-  cout<<"The point cloud was successfully generated!"<<endl;
-  return filterByReprojectionError(points3D);
+  cout<<"The point cloud was successfully generated (using Kclosest)!"<<endl;
+  return points3D;//filterByReprojectionError(points3D);
+}
+
+vector<pair<Point3d, double>> PointCloudConstructor::computePoints_ratioInterval() {
+  cout<<"***Generating the point cloud***"<<endl;
+
+  vector<pair<Point3d, double>> points3D;
+  const double MinRatio=0.0524;
+  const double MaxRatio=0.09; //was 0.2
+  double sum = 0;
+  int num = 0;
+  double radius = distance(images[1]->getCameraPose(), Point3d(0, 0, 0));
+  for(auto p1 = 0u; p1 != images.size(); ++p1) {
+
+    //p2 = index of the closest image to p1 with ratio greater than MinRatio
+    int p2;
+
+    //smallest distance whose ratio is greater than MinRatio
+   // double minDist = numeric_limits<double>::max();
+
+    for(auto i = 0u; i != images.size(); ++i) {
+      if(i == p1)
+        continue;
+      double dist = distance(images[p1]->getCameraPose(),
+                             images[i]->getCameraPose());
+   /*  if(dist < minDist && dist/radius > MinRatio) {
+        minDist = dist;
+        p2 = i;
+      }
+    }
+    if(minDist/radius > MaxRatio)
+      continue;
+    //cout<<p1<<" "<<p2<<" "<<minDist<<endl;
+    sum += minDist;
+    ++num;*/
+    if(!(dist/radius > MinRatio && dist/radius < MaxRatio)) continue;
+    p2 = i;
+    vector<TriangulatedPoint> triangulatedPoints = computePointsBetweenTwoImgs(p1, p2);
+    for(auto tp:triangulatedPoints)
+      points3D.push_back(make_pair(tp.point, tp.reprojectionError));
+  } }
+  cout<<"mean dist: "<<sum/num<<endl;
+  cout<<MinRatio*radius<<endl;
+  cout<<"The point cloud was successfully generated (using ratio interval)!"<<endl;
+  return points3D;
 }
 
 void PointCloudConstructor::populateCloud(
