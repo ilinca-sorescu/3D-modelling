@@ -1,0 +1,262 @@
+% Template for a Computer Science Tripos Part II project dissertation
+\documentclass[12pt,a4paper,twoside,openright]{report}
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage{verbatim}
+\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+
+\raggedbottom                           % try to avoid widows and orphans
+\sloppy
+\clubpenalty1000%
+\widowpenalty1000%
+
+\renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
+                                        % more readable
+
+\begin{document}
+
+\bibliographystyle{plain}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title
+
+
+
+\pagestyle{empty}
+
+\rightline{\LARGE \textbf{Ilinca Gabriela Sorescu}}
+
+\vspace*{60mm}
+\begin{center}
+\Huge
+\textbf{Constructing 3D Models from Image Sequences} \\[5mm]
+Computer Science Tripos -- Part II \\[5mm]
+Newnham College \\[5mm]
+\today  % today's date
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proforma, table of contents and list of figures
+
+\pagestyle{plain}
+
+\chapter*{Proforma}
+
+{\large
+\begin{tabular}{ll}
+Name:               & \bf Ilinca Gabriela Sorescu                       \\
+College:            & \bf Newnham College                               \\
+Project Title:      & \bf Constructing 3D Models from Image Sequences   \\
+Examination:        & \bf Computer Science Tripos -- Part II, July 2015  \\
+Word Count:         & \bf \footnotemark[1] \\
+Project Originator: & I. G. Sorescu                     \\
+Supervisor:         & Karina Palyutina                  \\ 
+\end{tabular}
+}
+\footnotetext[1]{This word count was computed
+by \texttt{detex diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w}
+}
+\stepcounter{footnote}
+
+
+\section*{Original Aims of the Project}
+
+
+
+
+\section*{Work Completed}
+
+All that has been completed appears in this dissertation.
+
+\section*{Special Difficulties}
+
+
+\newpage
+\section*{Declaration}
+
+I, Ilinca Gabriela Sorescu of Newnham College, being a candidate for Part II of the Computer Science Tripos, hereby declare
+that this dissertation and the work described in it are my own work,
+unaided except as may be specified below, and that the dissertation
+does not contain material that has already been used to any substantial
+extent for a comparable purpose.
+
+\bigskip
+\leftline{Signed [signature]}
+
+\medskip
+\leftline{Date [date]}
+
+\tableofcontents
+
+\listoffigures
+
+\newpage
+\section*{Acknowledgements}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% now for the chapters
+
+\pagestyle{headings}
+
+\chapter{Introduction}
+\section{Motivation for choosing this project}
+\section{}
+
+\chapter{Preparation}
+
+\section{Background information}
+\subsection{Ill-posed problems in computer vision}
+\subsection{Stereo correspondence}
+\subsection{Epipolar geometry}
+\subsection{The pinhole camera model}
+\subsection{The camera matix}
+\subsection{Triangulation}
+
+\section{}
+
+\section{Requirement analysis}
+
+\section{Software engineering techniques}
+\subsection{Testing and implementation strategies}
+
+
+\chapter{Implementation}
+This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
+
+\section{Overview of the system .. Division into modules}
+Why split like this + overall over + logically different
+
+As shown in the diagram below, the system consists of 4 main modules:
+\begin{itemize}
+\item \textbf{Image Generator}
+Given a three-dimensional object as input, the picture generator produces a specified number of digital pictures of that object, along with the corresponding locations from which the pictures have been taken. 
+\item \textbf{Point Cloud Constructor}
+The point cloud constructor aims to generate points which lie on the surface of the input model in the three-dimensional space. 
+\item \textbf{Surface Reconstructor}
+The surface reconstructor converts the point cloud constructed by the previous module into a triangular mesh. The resulting representation of the surface is exported into a \textit{.PLY} file.
+\item \textbf{Evaluation Module}
+The purpose of the evaluation module is to analyze the performance of the point cloud constructor (and maybe later of surface rec!) by comparing its result to the original model. \\
+\end{itemize}
+
+(add diagram to show that out from pic gen = in to pcc, out from pcc = in to surfaceRec, out from all 3 = in to eval module !!) \\
+
+\textit{Note on the division into prototypes: As specified in the project proposal, the development of the system was conducted in a prototyped fashion. This chapter presents the final version without discriminating between different prototypes. For a description of the differences between the prototypes see section !! of the evaluation chapter.}
+
+\section{The Image Generator}
+As described in the previous section, this module produces a sequence of digital snapshots of a given three-dimensional object as seen from different locations in space. \\
+Perhaps the most important aim of this project is to decide whether it would be practical to implement a low-cost system for creating digital representations of real-life objects based on pictures instead of using three-dimensional scanners. Therefore it might seem a bit odd that such a module is needed at all as it is restricting the system's interaction with the outside world. This section aims to explain why such an input generator is used and provide a detailed overview of its intended usage. 
+\subsection{The role it plays in the system}
+The motivation for an input generation module comes from observing how difficult it would be to measure the accuracy with which the system is able to represent a real-life object. To avoid this complexity, the input of the system is changed from a sequence of photographs of an object acquired using a hand-held camera to a sequence of digital snapshots of a preexisting three-dimensional model. This enables one to evaluate the results by comparing the output directly to the input model. More on this topic in the evaluation chapter. (rephrase this!!!)\\
+Here are some additional advantages of using digital snapshots instead of photos: 
+\begin{enumerate}
+\item there is no need to worry about camera calibration.
+\item the configuration of the scene is very easy to change (e.g.\ the location and orientation of the light sources, the number of snapshots taken, etc.). This is a very important advantage in determining the limiting conditions in which the output is accurate.
+\item the input generator can produce a lot of snapshots effortlessly and record the locations from which they were taken.
+\item no human assistance is needed in evaluating the system.
+\end{enumerate}
+The system can be extended to take real photographs as input simply by adding a calibration module.
+
+\subsection{Usage}
+This module is executed as a console application. The user must specify the following parameters:
+\begin{itemize}
+\item \textbf{Filename} The name of (and relative path to) the input object. This must be an include file for \textbf{The Persistence of Vision Raytracer (POV-Ray)} and have the extension \textit{.inc}. The input file is assumed to meet the conditions outlined below:
+	\begin{enumerate}
+		\item the file defines only one object.
+		\item the object defined is included in the scene. For better results it should be placed in the vicinity of the origin.
+		\item the scene defined in the file mustn't contain any lights or cameras.
+		\item no run-time errors are produced as a result of attempting to render the file using \textbf{POV-Ray}. 
+		\item the file doesn't contain any instruction whose purpose is to redefine the length of the units used to something other than the standard \textbf{POV-Ray} units. 
+	\end{enumerate}    
+\item \textbf{N} The number of snapshots to be taken. This can be any integer greater than 3.
+\item \textbf{R} The radius of the sphere considered. The following condition must be fulfilled by \textbf{R}: If you were to look towards the origin through air (using no distorting lenses) from any point at a distance \textbf{R} from the origin you would see the whole object. Here, the origin refers to the origin of the \textbf{POV-Ray} coordinate system and the distance is measured in \textbf{POV-Ray} units.  (for more details on the \textbf{POV-Ray} coordinate systems see \url{http://www.povray.org/documentation/view/3.6.1/15/}) 
+\end{itemize}
+
+\subsection{The Ray Tracer} More clear that not your own code
+The input generator repeatedly runs a ray tracing software in order to generate the snapshots. \\
+I use \textbf{The Persistence of Vision RayTracer}, or \textbf{POV-Ray}, because it generates images from a text-based scene description. This gives me a lot of flexibility in setting the location of the camera and the light conditions of the scene for every snapshot in turn directly from the script. \\
+Another great advantage of \textbf{POV-Ray} is that it comes with a free object collection (\url{http://objects.povworld.org/}). I can evaluate the results of my system on any one of these instead of having to create my own objects.\\
+Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available. Check out its stunning hall of fame: \url{http://hof.povray.org/}.
+
+\subsection{Language and libraries}
+The image generator was implemented using Python. The main factor involved in this decision was the availability of a lightweight library for dealing with templates. I used \textbf{Mako} (\url{http://www.makotemplates.org/}) in order to create \textit{.pov} files from the template \textit{povTemplate.mako}: 
+
+\begin{verbatim}
+#include "${filename}"
+#include "colors.inc"
+
+light_source { <100, 100, 100> color rgb<1, 1, 1> }
+
+camera {
+          location <${", ".join(str(x) for x in camera)}>
+          look_at <0, 0, 0>
+       }
+\end{verbatim} \\
+
+\textbf{Mako} enables the programmer to control the value of the variables (marked with \$) from the Python script. \\
+The \textit{.inc} file which defines the input model is included in the first line of the template. \\
+I chose to use this approach because it is a painless and straightforward way to control the location of the camera and the light conditions of the scene regardless of the input model used. 
+
+\subsection{Effect and output}
+Given the name of the input file, the number of snapshots to be produced(\textbf{N}) and the radius of the sphere considered(\textbf{R}), the image generator determines \textbf{N} points uniformly distributed on the surface of the sphere of radius \textbf{R} centered in origin. These \textbf{N} points represent the locations from which the snapshots will be taken. For each of these camera locations a new \textit{.pov} file will be generated from the \textbf{Mako} template as described in the previous section. Note that the camera is always pointing towards the origin. \\
+The \textit{.pov} files are rendered using \textbf{POV-Ray} to create the desired snapshots.
+
+\section{The Point Cloud Constructor}
+Given a sequence of snapshots, the point cloud constructor finds correspondences between pairs of snapshots and uses these correspondences to determine the three-dimensional position of points located on the surface of the object.   
+\subsection{Libraries}
+\subsection{Language choice}
+\subsection{Point Cloud Constructor (class)}
+\subsection{Image (class)}
+\subsection{Feature Matcher (class)}
+\subsection{Additional filters}
+\subsection{Improving performance}
+
+\section{The Surface Reconstructor}
+
+\section{Model Visualizers}
+
+\section{The Evaluation Module}
+This module consists of independent pieces of code which serve the purpose of evaluating the performance of the other modules. It is used in order to automatically plot the accuracy of the resulting representation under different conditions by systematically varying the input arguments of the point cloud constructor and repeatedly rerunning  it to acquire data. 
+
+\section{Summary} 
+In this section the user became  acquainted with the internal workings of the system.  
+
+
+\chapter{Evaluation}
+
+
+\chapter{Conclusion}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% the bibliography
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{refs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% the appendices
+\appendix
+
+\chapter{Latex source}
+
+\section{diss.tex}
+{\scriptsize\verbatiminput{diss.tex}}
+
+\section{proposal.tex}
+{\scriptsize\verbatiminput{proposal.tex}}
+
+\chapter{Makefile}
+
+\section{makefile}\label{makefile}
+{\scriptsize\verbatiminput{makefile.txt}}
+
+\section{refs.bib}
+{\scriptsize\verbatiminput{refs.bib}}
+
+
+\chapter{Project Proposal}
+
+\input{proposal}
+
+\end{document}
