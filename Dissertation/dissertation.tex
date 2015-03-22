@@ -26,15 +26,21 @@
 
 \pagestyle{empty}
 
-\rightline{\LARGE \textbf{Ilinca Gabriela Sorescu}}
+%\rightline{\LARGE \textbf{}}
 
-\vspace*{60mm}
+%\vspace*{30mm}
 \begin{center}
-\Huge
+\begin{Huge}
+Part II Project\\
 \textbf{Constructing 3D Models from Image Sequences} \\[5mm]
-Computer Science Tripos -- Part II \\[5mm]
-Newnham College \\[5mm]
-\today  % today's date
+Ilinca Gabriela Sorescu \\
+\end{Huge}
+%\linebreak[5]
+\vspace*{10mm}
+\centerline{\includegraphics[scale=0.2]{figs/Newnham_crest.png}}
+\Large Newnham College \\
+\vspace*{65mm}
+\large \today % today's date
 \end{center}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,15 +56,12 @@ Name:               & \bf Ilinca Gabriela Sorescu                       \\
 College:            & \bf Newnham College                               \\
 Project Title:      & \bf Constructing 3D Models from Image Sequences   \\
 Examination:        & \bf Computer Science Tripos -- Part II, July 2015  \\
-Word Count:         & \bf \footnotemark[1] \\
+Word Count:         & \bf  \\
 Project Originator: & I. G. Sorescu                     \\
 Supervisor:         & Karina Palyutina                  \\ 
 \end{tabular}
 }
-\footnotetext[1]{This word count was computed
-by \texttt{detex diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w}
-}
-\stepcounter{footnote}
+
 
 
 \section*{Original Aims of the Project}
@@ -71,7 +74,7 @@ by \texttt{detex diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w}
 All that has been completed appears in this dissertation.
 
 \section*{Special Difficulties}
-
+None.
 
 \newpage
 \section*{Declaration}
@@ -83,17 +86,16 @@ does not contain material that has already been used to any substantial
 extent for a comparable purpose.
 
 \bigskip
-\leftline{Signed [signature]}
+\leftline{Signed}
 
 \medskip
-\leftline{Date [date]}
+\leftline{Date}
 
 \tableofcontents
 
 \listoffigures
 
 \newpage
-\section*{Acknowledgements}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % now for the chapters
@@ -101,13 +103,13 @@ extent for a comparable purpose.
 \pagestyle{headings}
 
 \chapter{Introduction}
-\section{Motivation for choosing this project}
+\section{Motivation}
 \section{}
+\section{Related work}
 
 \chapter{Preparation}
 
 \section{Background information}
-\subsection{Ill-posed problems in computer vision}
 \subsection{Stereo correspondence}
 \subsection{Epipolar geometry}
 \subsection{The pinhole camera model}
@@ -125,10 +127,12 @@ extent for a comparable purpose.
 \chapter{Implementation}
 This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
 
-\section{Overview of the system .. Division into modules}
-Why split like this + overall over + logically different
-
-As shown in the diagram below, the system consists of 4 main modules:
+\section{Overview of the system}
+[REPHRASED!:]In order to achieve the purposes of this project, a working system which attempts to construct a three-dimensional model based on a sequence of images was put together. \\
+\linebreak
+After analyzing the input images, the system builds a set of points which are considered to be lying on the surface of the input object. These points are then connected together in order to construct a polygon mesh. This newly-constructed surface is then exported as a \textbf{PLY} file.\\
+\linebreak
+After careful consideration, the system was split into these logically-different entities:
 \begin{itemize}
 \item \textbf{Image Generator}
 Given a three-dimensional object as input, the picture generator produces a specified number of digital pictures of that object, along with the corresponding locations from which the pictures have been taken. 
@@ -148,7 +152,7 @@ The purpose of the evaluation module is to analyze the performance of the point 
 As described in the previous section, this module produces a sequence of digital snapshots of a given three-dimensional object as seen from different locations in space. \\
 Perhaps the most important aim of this project is to decide whether it would be practical to implement a low-cost system for creating digital representations of real-life objects based on pictures instead of using three-dimensional scanners. Therefore it might seem a bit odd that such a module is needed at all as it is restricting the system's interaction with the outside world. This section aims to explain why such an input generator is used and provide a detailed overview of its intended usage. 
 \subsection{The role it plays in the system}
-The motivation for an input generation module comes from observing how difficult it would be to measure the accuracy with which the system is able to represent a real-life object. To avoid this complexity, the input of the system is changed from a sequence of photographs of an object acquired using a hand-held camera to a sequence of digital snapshots of a preexisting three-dimensional model. This enables one to evaluate the results by comparing the output directly to the input model. More on this topic in the evaluation chapter. (rephrase this!!!)\\
+[REPHRASED!]: Complex measurements and calculations must be performed in order to determine the accuracy with which the output of the system resembles the real-life object used as input. To avoid this complexity, the input of the system was changed from a sequence of photographs of an object acquired using a hand-held camera to a sequence of digital snapshots of a preexisting three-dimensional model. This is a natural first-step to be taken in deciding whether such a system would yield a reliable representation because it enables one to evaluate the results by comparing the output directly to the input model. More on this topic in the evaluation chapter.\\
 Here are some additional advantages of using digital snapshots instead of photos: 
 \begin{enumerate}
 \item there is no need to worry about camera calibration.
@@ -170,14 +174,17 @@ This module is executed as a console application. The user must specify the foll
 		\item the file doesn't contain any instruction whose purpose is to redefine the length of the units used to something other than the standard \textbf{POV-Ray} units. 
 	\end{enumerate}    
 \item \textbf{N} The number of snapshots to be taken. This can be any integer greater than 3.
-\item \textbf{R} The radius of the sphere considered. The following condition must be fulfilled by \textbf{R}: If you were to look towards the origin through air (using no distorting lenses) from any point at a distance \textbf{R} from the origin you would see the whole object. Here, the origin refers to the origin of the \textbf{POV-Ray} coordinate system and the distance is measured in \textbf{POV-Ray} units.  (for more details on the \textbf{POV-Ray} coordinate systems see \url{http://www.povray.org/documentation/view/3.6.1/15/}) 
+\item \textbf{R} The radius of the sphere considered. The following condition must be fulfilled by \textbf{R}: If you were to look towards the origin through air (using no distorting lenses) from any point at a distance \textbf{R} from the origin you would see the whole object. Here, the origin refers to the origin of the \textbf{POV-Ray} coordinate system and the distance is measured in \textbf{POV-Ray} units.  (for more details on the \textbf{POV-Ray} coordinate systems see \url{http://www.povray.org/documentation/view/3.6.1/15/})
 \end{itemize}
 
-\subsection{The Ray Tracer} More clear that not your own code
-The input generator repeatedly runs a ray tracing software in order to generate the snapshots. \\
-I use \textbf{The Persistence of Vision RayTracer}, or \textbf{POV-Ray}, because it generates images from a text-based scene description. This gives me a lot of flexibility in setting the location of the camera and the light conditions of the scene for every snapshot in turn directly from the script. \\
+\subsection{The Ray Tracer} 
+[REPHRASED!:] 
+The purpose of the image generator is to produce an alternative to photographs of a real-life object. The performance of the system will be evaluated based on what it produces when applied to this computer-generated input. Therefore, for this evaluation to be sound, the input used must be a near photo-realistic representation of the object.\\  
+\linebreak
+A ray tracer accomplishes just that: given a three-dimensional description of a scene, it creates a digital image of that scene as seen from a predefined location. Many of the ray tracers available yield pictures which are realistic enough for the purposes of this project. \\   
+I used \textbf{The Persistence of Vision RayTracer}, or \textbf{POV-Ray}, because it generates images from a text-based scene description. This gives me a lot of flexibility in setting the location of the camera and the light conditions of the scene for every snapshot in turn directly from the script. \\
 Another great advantage of \textbf{POV-Ray} is that it comes with a free object collection (\url{http://objects.povworld.org/}). I can evaluate the results of my system on any one of these instead of having to create my own objects.\\
-Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available. Check out its stunning hall of fame: \url{http://hof.povray.org/}.
+Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.
 
 \subsection{Language and libraries}
 The image generator was implemented using Python. The main factor involved in this decision was the availability of a lightweight library for dealing with templates. I used \textbf{Mako} (\url{http://www.makotemplates.org/}) in order to create \textit{.pov} files from the template \textit{povTemplate.mako}: 
@@ -237,26 +244,5 @@ In this section the user became  acquainted with the internal workings of the sy
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the appendices
 \appendix
-
-\chapter{Latex source}
-
-\section{diss.tex}
-{\scriptsize\verbatiminput{diss.tex}}
-
-\section{proposal.tex}
-{\scriptsize\verbatiminput{proposal.tex}}
-
-\chapter{Makefile}
-
-\section{makefile}\label{makefile}
-{\scriptsize\verbatiminput{makefile.txt}}
-
-\section{refs.bib}
-{\scriptsize\verbatiminput{refs.bib}}
-
-
-\chapter{Project Proposal}
-
-\input{proposal}
 
 \end{document}
