@@ -1,3 +1,4 @@
+
 % Template for a Computer Science Tripos Part II project dissertation
 \documentclass[12pt,a4paper,twoside,openright]{report}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
@@ -130,12 +131,43 @@ For the reasons outlined above, exploring a cheaper alternative to constructing 
 
 \section{Challenges}
 In the last section I tried to convince the reader that the world would benefit from a more widespread usage of 3D reconstruction. The purpose of this section is to explain why, in spite of all of its advantages, 3D reconstruction still has a restricted range of applicability today. \\
-\linebreak 
+\linebreak
+Computer vision, the scientific discipline concerned with making computers understand the visual world of humans, is still in its infancy, according to many experts in this field. \\
+The main reason for this lack of expertise is that vision is an \textit{inverse problem}: we are seeking to create a mapping from a two dimensional space to a three dimensional one. Clearly, we are given insufficient information to fully specify the solution \cite{Szeliski+2011}.\\
+\linebreak
+Like most inverse problems, 3D reconstruction is an ill-posed problem because it disobeys the last two conditions of \textit{Hadamard's criteria} \cite{+2008}:
+\begin{itemize}
+\item There is a solution.
+\item The solution is unique.
+\item The solution depends continuously on the initial conditions.
+\end{itemize}
+Each of the disobeyed conditions adds to the difficulty of the task:\\
+\begin{itemize}
+\item If there are multiple possible solutions for an inherent part of the task one must be able to identify which factors make a solution more probable than another. In the case of 3D reconstruction, determining the depth attributes of the scene can have more than one solution. The reasons for this will be discussed later.
+\item If the third condition is disobeyed, the solution is likely to be very error-prone.
+\end{itemize}
+The complexity of an ill-posed problem is very easy to underestimate. However, in some respects, providing an exact solution to such a problem is an \textit{AI-complete} task.\\
+The working solutions of ill-posed problems in the field of computer vision attempt to go around this issue by approximating the result rather than determining it, or by placing some limitations on the input data. Unfortunately, in the case of 3D reconstruction, the result is still noticeably distorted in some cases.\\
+\linebreak
+The ill-posed nature of the task is not the only complication which was expected to arise. Other factors which increased the risk of the undertaking are having to rely on the performance of external libraries any my own inexperience with projects of this scale. 
 
 \section{Related work}
+This section serves to present some of the work done in the field of 3D reconstruction and to discuss its techniques and results in the light of this project.\\
+\linebreak
+A list of 3D reconstruction software can be found at \url{http://en.wikipedia.org/wiki/Comparison_of_photogrammetry_software}. Most of the entries in this list do not fully reflect the aims of this project either because they make use of 3D scanners or other specialized hardware or because they don't provide support for automatic modeling. Nonetheless, the accuracy with which such software reconstructs an object is an important factor to consider when deciding whether this project should be considered a success.\\
+\linebreak
+\begin{figure}
+\centerline{\includegraphics[scale=0.8]{figs/CHICKENS.jpg}}
+\caption{Results in the field of 3D reconstruction. The digital models of chickens are obtained using the web-based tool ARC3D. These models were constructed as part of the iMinds INSTANCE project.}
+\end{figure}
+Out of the software presented in the link above, the tool which best resembles the aims of this project is Ku Leuven's ARC3D\footnote{http://homes.esat.kuleuven.be/~visit3d/webservice/v2/}. This impressive web-based software is a free, fully-automatic tool for extracting a 3D model from a sequence of images. Its 3D photo gallery\footnote{http://homes.esat.kuleuven.be/~konijn/3d/} unveils a series of life-like models, some of which were even used in order to print replicas of the initial object.\\
+\linebreak
+ARC3D bases its computation on the notion of dense reconstruction\ref{tingdahl_lncs_11}. This is more powerful than the approach described in the following chapters of this document because it aims to estimate the depth of the scene at every pixel of the image, not only at a few relevant locations. Albeit dense reconstruction leads to better results, the risks involved in understanding, planning and implementing it in time make it an unfeasible approach for the core of this project.  
+
 
 \chapter{Preparation}
-In the project proposal I gave a broad outline of the work that needs to be done in order to accomplish the goals of this project. The purpose of this chapter is to fill in those details and to provide the theoretical background for understanding some of the techniques and algorithms involved in the development of this project.
+The original aims of this project, as presented in the project proposal, amount to a very broad description of the task to be undertaken. A more in-depth overview of  is essential for the successful completion of the project.\\  
+The purpose of this chapter is to fill in those details and to provide the theoretical background for understanding some of the techniques and algorithms involved in the development of this project.
 
 \section{Theoretical background}
 \subsection{Stereo vision and stereo correspondence}
