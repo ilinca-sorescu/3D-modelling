@@ -6,6 +6,12 @@
 \usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
 \usepackage{verbatim}
 \usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\usepackage{booktabs}
 
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
@@ -162,12 +168,15 @@ A list of 3D reconstruction software can be found at \url{http://en.wikipedia.or
 \end{figure}
 Out of the software presented in the link above, the tool which best resembles the aims of this project is Ku Leuven's ARC3D\footnote{http://homes.esat.kuleuven.be/~visit3d/webservice/v2/}. This impressive web-based software is a free, fully-automatic tool for extracting a 3D model from a sequence of images. Its 3D photo gallery\footnote{http://homes.esat.kuleuven.be/~konijn/3d/} unveils a series of life-like models, some of which were even used in order to print replicas of the initial object.\\
 \linebreak
-ARC3D bases its computation on the notion of dense reconstruction\ref{tingdahl_lncs_11}. This is more powerful than the approach described in the following chapters of this document because it aims to estimate the depth of the scene at every pixel of the image, not only at a few relevant locations. Albeit dense reconstruction leads to better results, the risks involved in understanding, planning and implementing it in time make it an unfeasible approach for the core of this project.  
+ARC3D bases its computation on the notion of dense reconstruction\cite{tingdahl_lncs_11}. This is more powerful than the approach described in the following chapters of this document because it aims to estimate the depth of the scene at every pixel of the image, not only at a few relevant locations. Albeit dense reconstruction leads to better results, the risks involved in understanding, planning and implementing it in time make it an unfeasible approach for the core of this project. Due to the use of sparse reconstruction, the results of this project are expected to be noisier than those of ARC3D. 
 
 
 \chapter{Preparation}
-The original aims of this project, as presented in the project proposal, amount to a very broad description of the task to be undertaken. A more in-depth overview of  is essential for the successful completion of the project.\\  
-The purpose of this chapter is to fill in those details and to provide the theoretical background for understanding some of the techniques and algorithms involved in the development of this project.
+The original aims of this project, as presented in the project proposal, amount to a very broad description of the task to be undertaken. As a result, further consideration was  
+
+A more in-depth overview of the requirements is essential for the successful completion of the project.\\  
+This chapter serves as a 
+an explicit description of the task and to provide the theoretical background for understanding some of the techniques and algorithms involved in the development of this project.
 
 \section{Theoretical background}
 \subsection{Stereo vision and stereo correspondence}
@@ -186,10 +195,43 @@ Stereo vision is the process of recovering depth information from a pair of 2D p
 \section{}
 
 \section{Requirement analysis}
+This section aims to identify the functional components of the project and to  
+explicitly describe the requirements which must be fulfilled by a successful implementation of the project.
+\begin{samepage}
+\begin{center}
+\begin{table}
+\begin{tabularx}{\textwidth}{@{} Y c c c @{}} % use 'Y' for first column
+\toprule
+Functional Requirements & Priority & Difficulty & Risk\\
+\midrule
+Build a tool for generating pictures from a 3D model                    &   H       &     L      &   L \\ \addlinespace
+Implement a module which constructs a point cloud using triangulation   &   H       &     M      &   H \\ \addlinespace
+Improve stereo correspondence using an epipolar filter                  &   M       &     H      &   H \\ \addlinespace
+(optional)Implement other filters to build a better point cloud         &   L       &     M      &   M \\ \addlinespace
+Construct the surface from the resulting point cloud                    &   M       &     H      &   H \\ \addlinespace
+Add functionality to export the surface as .PLY                         &   L       &     L      &   L \\ 
+\bottomrule
+\end{tabularx}
+\caption{Functional requirements} 
+\label{table:nonlin}
+\end{table}
+\end{center}
+
+\noindent
+\end{samepage}
+\section{Dependency analysis}
+\begin{figure}
+\centerline{\includegraphics[scale=0.75]{figs/dependencies.png}}
+\caption{Dependencies between different units of the project}
+\end{figure}
 
 \section{Software engineering techniques}
 \subsection{Testing and implementation strategies}
-
+\subsection{Programming languages and libraries}
+\begin{figure}
+\centerline{\includegraphics[scale=0.8]{figs/libraries.png}}
+\caption{The libraries and other external software used in the development of this project. The white nodes represent modules of the project.}
+\end{figure}
 
 \chapter{Implementation}
 This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
@@ -208,11 +250,12 @@ The point cloud constructor aims to generate points which lie on the surface of 
 \item \textbf{Surface Reconstructor}
 The surface reconstructor converts the point cloud constructed by the previous module into a triangular mesh. The resulting representation of the surface is exported into a \textit{.PLY} file.
 \item \textbf{Evaluation Module}
-The purpose of the evaluation module is to analyze the performance of the point cloud constructor (and maybe later of surface rec!) by comparing its result to the original model. \\
+The purpose of the evaluation module is to analyze the performance of the point cloud constructor and of the surface reconstructor by comparing their result to the original model. \\
 \end{itemize}
-
-(add diagram to show that out from pic gen = in to pcc, out from pcc = in to surfaceRec, out from all 3 = in to eval module !!) \\
-
+\begin{figure}
+\centerline{\includegraphics[scale=0.7]{figs/overview.png}}
+\caption{An overview of the system}
+\end{figure}
 \textit{Note on the division into prototypes: As specified in the project proposal, the development of the system was conducted in a prototyped fashion. This chapter presents the final version without discriminating between different prototypes. For a description of the differences between the prototypes see section !! of the evaluation chapter.}
 
 \section{The Image Generator}
