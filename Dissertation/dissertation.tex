@@ -10,7 +10,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{tabularx}
 \usepackage{ragged2e}
-\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\newcolumntype{Y}{>{\RaggedRight\centering\arraybackslash}X}
 \usepackage{booktabs}
 
 \raggedbottom                           % try to avoid widows and orphans
@@ -172,75 +172,54 @@ ARC3D bases its computation on the notion of dense reconstruction\cite{tingdahl_
 
 
 \chapter{Preparation}
-The original aims of this project, as presented in the project proposal, amount to a very broad description of the task to be undertaken. As a result, further consideration was  
-
-A more in-depth overview of the requirements is essential for the successful completion of the project.\\  
-This chapter serves as a 
-an explicit description of the task and to provide the theoretical background for understanding some of the techniques and algorithms involved in the development of this project.
-
-\section{Theoretical background}
-\subsection{Stereo vision and stereo correspondence}
-Stereo vision is the process of recovering depth information from a pair of 2D projections of the a scene as seen from two different viewpoints.\\ 
-\textit{Although in this project more than two viewpoints will be used, the task of recovering 3D data from multiple 2D projections is difficult for the same fundamental reason as stereo vision is. For simplicity, this section will analyze the difficulties which arise from attempting to recover a 3D scene from two images.} \\
-
-\subsection{The perspective camera}
+The original aims of this project, as presented in the project proposal, amount to a very broad description of the task to be undertaken. However, the successful completion of a challenging project of this scale requires a great deal of careful planning. This chapter presents some of the aspects which factored into planning the execution of a system which aims to reconstruct the scene from a sequence of images.\\
+\linebreak
+The chapter starts off by identifying the requirements of the system, then it proceeds to describe the structure of the project as it has developed from these requirements. What follows is a description of the tools and methodologies involved in the development of this project. 
 
 
-\subsection{Epipolar geometry}
+%\subsection{Stereo vision and stereo correspondence}
+%Stereo vision is the process of recovering depth information from a pair of 2D %projections of the a scene as seen from two different viewpoints.\\ 
+%\textit{Although in this project more than two viewpoints will be used, the task of recovering 3D data from multiple 2D projections is difficult for the same fundamental reason as stereo vision is. For simplicity, this section will analyze the difficulties which arise from attempting to recover a 3D scene from two images.} \\
 
-\subsection{The camera matix}
-
-\subsection{Triangulation}
-
-\section{}
-
-\section{Requirement analysis}
-This section aims to identify the functional components of the project and to  
-explicitly describe the requirements which must be fulfilled by a successful implementation of the project.
+\section{Requirement Analysis}
+This section aims to identify the requirements which must be fulfilled by any successful implementation of the system described in this document.\\
+In addition to serving as a criterion in deciding whether the project is successful or not, such an analysis is an inherent part of the early stages of the project because it provides a base for planning the implementation and for structuring the system.\\
+\linebreak
+A broad description of the 
+In order to achieve the purposes of this project, a working system which constructs a three-dimensional model based on a sequence of images must be put together. \\
+After analyzing the input images, the system aims to build a set of points which are considered to be lying on the surface of the input object. These points are then connected together in order to construct a polygon mesh. The newly-constructed surface is then exported as a \textbf{PLY} file.\\
+\linebreak
 \begin{samepage}
+Table 2.1 summarizes the goals of this project. The information displayed in this table is in conformity with what was presented in the project proposal, but it provides a lower-level overview of the functional components of the system.\\
+For each of the functional components listed above the table specifies the priority within the system and provides an estimate of the difficulty and risk expected to arise in the implementation of that component. Because there is a substantial amount of risk involved in carrying out this project, careful consideration was given to estimating the risk of each functional unit. The main  factors which were taken into account in determining the risk of a task are:
+\begin{itemize}
+\item whether the task is ill-posed. For reasons presented in the introductory chapter of this document, the main source of risk in this project comes from the ill-posed nature of the underlying problem.
+\item whether the outcome is expected to need further refinement. Post-processing is commonly used in order to correct the result of an error-prone computation.
+\item whether it involves solving complicated mathematical equations. I consider this to be a source of risk because typically such computations are harder to debug and imply a loss of precision.
+\end{itemize}     
 \begin{center}
 \begin{table}
 \begin{tabularx}{\textwidth}{@{} Y c c c @{}} % use 'Y' for first column
 \toprule
-Functional Requirements & Priority & Difficulty & Risk\\
+\textbf{Functional Requirements} & \textbf{Priority} & \textbf{Difficulty} & \textbf{Risk}\\ \hline
 \midrule
-Build a tool for generating pictures from a 3D model                    &   H       &     L      &   L \\ \addlinespace
-Implement a module which constructs a point cloud using triangulation   &   H       &     M      &   H \\ \addlinespace
-Improve stereo correspondence using an epipolar filter                  &   M       &     H      &   H \\ \addlinespace
-(optional)Implement other filters to build a better point cloud         &   L       &     M      &   M \\ \addlinespace
-Construct the surface from the resulting point cloud                    &   M       &     H      &   H \\ \addlinespace
-Add functionality to export the surface as .PLY                         &   L       &     L      &   L \\ 
+Build a tool for generating pictures from a 3D model                    &   High       &     Low      &   Low \\ \hline \addlinespace
+Implement a tool which constructs a point cloud using triangulation   &   High       &     Medium      &   High \\ \hline \addlinespace
+Improve stereo correspondence using an epipolar filter                  &   Medium       &     High      &   High \\ \hline \addlinespace
+(optional)Implement other filters to build a better point cloud         &   Low       &     Medium      &   Medium \\ \hline \addlinespace
+Construct the surface from the resulting point cloud                    &   Medium       &     High      &   High \\ \hline \addlinespace
+Add functionality to export the surface as .PLY                         &   Low       &     Low      &   Low \\ 
 \bottomrule
 \end{tabularx}
 \caption{Functional requirements} 
 \label{table:nonlin}
 \end{table}
 \end{center}
-
-\noindent
 \end{samepage}
-\section{Dependency analysis}
-\begin{figure}
-\centerline{\includegraphics[scale=0.75]{figs/dependencies.png}}
-\caption{Dependencies between different units of the project}
-\end{figure}
 
-\section{Software engineering techniques}
-\subsection{Testing and implementation strategies}
-\subsection{Programming languages and libraries}
-\begin{figure}
-\centerline{\includegraphics[scale=0.8]{figs/libraries.png}}
-\caption{The libraries and other external software used in the development of this project. The white nodes represent modules of the project.}
-\end{figure}
 
-\chapter{Implementation}
-This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
 
-\section{Overview of the system}
-[REPHRASED!:]In order to achieve the purposes of this project, a working system which attempts to construct a three-dimensional model based on a sequence of images was put together. \\
-\linebreak
-After analyzing the input images, the system builds a set of points which are considered to be lying on the surface of the input object. These points are then connected together in order to construct a polygon mesh. This newly-constructed surface is then exported as a \textbf{PLY} file.\\
-\linebreak
+\section{The Main Components of the System}
 After careful consideration, the system was split into these logically-different entities:
 \begin{itemize}
 \item \textbf{Image Generator}
@@ -256,13 +235,47 @@ The purpose of the evaluation module is to analyze the performance of the point 
 \centerline{\includegraphics[scale=0.7]{figs/overview.png}}
 \caption{An overview of the system}
 \end{figure}
+
+
+\section{Dependency Analysis}
+\begin{figure}
+\centerline{\includegraphics[scale=0.75]{figs/dependencies.png}}
+\caption{Dependencies between different units of the project}
+\end{figure}
+
+\section{Choice of Tools}
+\subsection{Programming Languages}
+\subsection{Libraries}
+\begin{figure}
+\centerline{\includegraphics[scale=0.8]{figs/libraries.png}}
+\caption{The libraries and other external software used in the development of this project. The white nodes represent modules of the project.}
+\end{figure}
+\subsection{The Ray Tracer} 
+The purpose of one of the main parts of the system, the image generator, is to produce an alternative to photographs of a real-life object. The performance of the system will be evaluated based on what it produces when applied to this computer-generated input. Therefore, for this evaluation to be sound, the input used must be a near photo-realistic representation of the object.\\  
+\linebreak
+A ray tracer accomplishes just that: given a three-dimensional description of a scene, it creates a digital image of that scene as seen from a predefined location. Many of the ray tracers available yield pictures which are realistic enough for the purposes of this project. \\   
+I used \textbf{The Persistence of Vision RayTracer}, or \textbf{POV-Ray}, because it generates images from a text-based scene description. This gives me a lot of flexibility in setting the location of the camera and the light conditions of the scene for every snapshot in turn directly from the script.\\
+Another great advantage of \textbf{POV-Ray}\footnote{http://www.povray.org/} is that it comes with a free object collection (\url{http://objects.povworld.org/}). I can evaluate the results of my system on any one of these instead of having to create my own objects.\\
+Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.\footnote{http://hof.povray.org/}
+\subsection{The programming environment}
+\subsection{Versioning control}
+
+
+\section{Software engineering techniques}
+\section{Summary}
+
+\chapter{Implementation}
+This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
+
+\section{Overview of the System}
+Reiterate in short what was in prep in overview
 \textit{Note on the division into prototypes: As specified in the project proposal, the development of the system was conducted in a prototyped fashion. This chapter presents the final version without discriminating between different prototypes. For a description of the differences between the prototypes see section !! of the evaluation chapter.}
 
 \section{The Image Generator}
 As described in the previous section, this module produces a sequence of digital snapshots of a given three-dimensional object as seen from different locations in space. \\
 Perhaps the most important aim of this project is to decide whether it would be practical to implement a low-cost system for creating digital representations of real-life objects based on pictures instead of using three-dimensional scanners. Therefore it might seem a bit odd that such a module is needed at all as it is restricting the system's interaction with the outside world. This section aims to explain why such an input generator is used and provide a detailed overview of its intended usage. 
 \subsection{The role it plays in the system}
-[REPHRASED!]: Complex measurements and calculations must be performed in order to determine the accuracy with which the output of the system resembles the real-life object used as input. To avoid this complexity, the input of the system was changed from a sequence of photographs of an object acquired using a hand-held camera to a sequence of digital snapshots of a preexisting three-dimensional model. This is a natural first-step to be taken in deciding whether such a system would yield a reliable representation because it enables one to evaluate the results by comparing the output directly to the input model. More on this topic in the evaluation chapter.\\
+Complex measurements and calculations must be performed in order to determine the accuracy with which the output of the system resembles the real-life object used as input. To avoid this complexity, the input of the system was changed from a sequence of photographs of an object acquired using a hand-held camera to a sequence of digital snapshots of a preexisting three-dimensional model. This is a natural first-step to be taken in deciding whether such a system would yield a reliable representation because it enables one to evaluate the results by comparing the output directly to the input model. More on this topic in the evaluation chapter.\\
 Here are some additional advantages of using digital snapshots instead of photos: 
 \begin{enumerate}
 \item there is no need to worry about camera calibration.
@@ -287,14 +300,6 @@ This module is executed as a console application. The user must specify the foll
 \item \textbf{R} The radius of the sphere considered. The following condition must be fulfilled by \textbf{R}: If you were to look towards the origin through air (using no distorting lenses) from any point at a distance \textbf{R} from the origin you would see the whole object. Here, the origin refers to the origin of the \textbf{POV-Ray} coordinate system and the distance is measured in \textbf{POV-Ray} units.  (for more details on the \textbf{POV-Ray} coordinate systems see \url{http://www.povray.org/documentation/view/3.6.1/15/})
 \end{itemize}
 
-\subsection{The Ray Tracer} 
-[REPHRASED!:] 
-The purpose of the image generator is to produce an alternative to photographs of a real-life object. The performance of the system will be evaluated based on what it produces when applied to this computer-generated input. Therefore, for this evaluation to be sound, the input used must be a near photo-realistic representation of the object.\\  
-\linebreak
-A ray tracer accomplishes just that: given a three-dimensional description of a scene, it creates a digital image of that scene as seen from a predefined location. Many of the ray tracers available yield pictures which are realistic enough for the purposes of this project. \\   
-I used \textbf{The Persistence of Vision RayTracer}, or \textbf{POV-Ray}, because it generates images from a text-based scene description. This gives me a lot of flexibility in setting the location of the camera and the light conditions of the scene for every snapshot in turn directly from the script.\\
-Another great advantage of \textbf{POV-Ray} is that it comes with a free object collection (\url{http://objects.povworld.org/}). I can evaluate the results of my system on any one of these instead of having to create my own objects.\\
-Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.
 
 \subsection{Language and libraries}
 The image generator was implemented using Python. The main factor involved in this decision was the availability of a lightweight library for dealing with templates. I used \textbf{Mako} (\url{http://www.makotemplates.org/}) in order to create \textit{.pov} files from the template \textit{povTemplate.mako}: 
