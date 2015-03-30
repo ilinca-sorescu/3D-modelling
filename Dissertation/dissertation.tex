@@ -176,19 +176,19 @@ The original aims of this project, as presented in the project proposal, amount 
 \linebreak
 The chapter starts off by identifying the requirements of the system, then it proceeds to describe the structure of the project as it has developed from these requirements. What follows is a description of the tools and methodologies involved in the development of this project. 
 
-
 %\subsection{Stereo vision and stereo correspondence}
 %Stereo vision is the process of recovering depth information from a pair of 2D %projections of the a scene as seen from two different viewpoints.\\ 
 %\textit{Although in this project more than two viewpoints will be used, the task of recovering 3D data from multiple 2D projections is difficult for the same fundamental reason as stereo vision is. For simplicity, this section will analyze the difficulties which arise from attempting to recover a 3D scene from two images.} \\
 
-\section{Requirement Analysis}
+\section{System Overview and Requirement Analysis}
 This section aims to identify the requirements which must be fulfilled by any successful implementation of the system described in this document.\\
 In addition to serving as a criterion in deciding whether the project is successful or not, such an analysis is an inherent part of the early stages of the project because it provides a base for planning the implementation and for structuring the system.\\
 \linebreak
-A broad description of the 
+This section presents a broad overview of the system and then proceeds to identify the functional requirements of the project.
+\subsection{Overview of the Project}
 In order to achieve the purposes of this project, a working system which constructs a three-dimensional model based on a sequence of images must be put together. \\
 After analyzing the input images, the system aims to build a set of points which are considered to be lying on the surface of the input object. These points are then connected together in order to construct a polygon mesh. The newly-constructed surface is then exported as a \textbf{PLY} file.\\
-\linebreak
+\subsection{Functional Requirements}
 \begin{samepage}
 Table 2.1 summarizes the goals of this project. The information displayed in this table is in conformity with what was presented in the project proposal, but it provides a lower-level overview of the functional components of the system.\\
 For each of the functional components listed above the table specifies the priority within the system and provides an estimate of the difficulty and risk expected to arise in the implementation of that component. Because there is a substantial amount of risk involved in carrying out this project, careful consideration was given to estimating the risk of each functional unit. The main  factors which were taken into account in determining the risk of a task are:
@@ -216,11 +216,11 @@ Add functionality to export the surface as .PLY                         &   Low 
 \end{table}
 \end{center}
 \end{samepage}
-
-
+It is important to note that this system only aims to build the polygon mesh of the surface. Therefore I regarded capturing the texture and shading of the scene non-requirement. The system can be extended later to include this functionality.\\
+I am also planning to build the system as one or multiple console applications, hence discarding the need to build a user interface. The applications will display a help message containing information about the tool's intended purpose and usage.
 
 \section{The Main Components of the System}
-After careful consideration, the system was split into these logically-different entities:
+After a careful evaluation of its required functionality, the system was split into these logically-different entities:
 \begin{itemize}
 \item \textbf{Image Generator}
 Given a three-dimensional object as input, the picture generator produces a specified number of digital pictures of that object, along with the corresponding locations from which the pictures have been taken. 
@@ -243,6 +243,7 @@ The purpose of the evaluation module is to analyze the performance of the point 
 \caption{Dependencies between different units of the project}
 \end{figure}
 
+
 \section{Choice of Tools}
 \subsection{Programming Languages}
 \subsection{Libraries}
@@ -259,8 +260,6 @@ Another great advantage of \textbf{POV-Ray}\footnote{http://www.povray.org/} is 
 Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.\footnote{http://hof.povray.org/}
 \subsection{The programming environment}
 \subsection{Versioning control}
-
-
 \section{Software engineering techniques}
 \section{Summary}
 
