@@ -11,8 +11,8 @@ RadiusOutlierRemovalFilter::RadiusOutlierRemovalFilter(
       new PointCloud<PointXYZRGB>);
   RadiusOutlierRemoval<PointXYZRGB> f;
   f.setInputCloud(cloud);
-  f.setRadiusSearch(0.1);
-  f.setMinNeighborsInRadius (4);
+  f.setRadiusSearch(0.15);
+  f.setMinNeighborsInRadius (2); //ajust this properly
   f.filter (*filteredCloud);
   filteredCloud->height = 1;
   filteredCloud->width = filteredCloud->points.size();

@@ -8,7 +8,7 @@
 #ifndef POINTCLOUDCONSTRUCTOR_H_
 #define POINTCLOUDCONSTRUCTOR_H_
 
-#define K_ 1//4
+#define K_ 1//10
 
 #include "Image.h"
 #include "FeatureMatcher.h"
@@ -20,7 +20,12 @@
 
 class PointCloudConstructor {
   public:
-		PointCloudConstructor(
+    static double Epsilon;
+    static double MinRatio;
+    static double MaxRatio;
+    static double ReprojectionError;
+    static double Tolerance;
+    PointCloudConstructor(
         std::string folder,
         int wantedNumberOfPics = -1);
    	std::vector<std::shared_ptr<Image>> getImages();
@@ -30,6 +35,7 @@ class PointCloudConstructor {
     void cloudToPCD(String PCDFileName); //Point Cloud Data (out) file
     void cloudToTxt(String txtFileName);
     void normalizeCloudValues(); //make all point coords. in [-1, 1]
+    std::vector<cv::Point3d> sortPoints(std::vector<cv::Point3d>);
 
   private:
     struct TriangulatedPoint{
@@ -42,12 +48,12 @@ class PointCloudConstructor {
     };
 
     //for each picture search for matches in its k closest neighbours
-    std::vector<cv::Point3d> computePoints_kclosest();
+    std::vector<std::pair<cv::Point3d, double>> computePoints_kclosest();
 
     //search for matches in all of the pairs of images (img1, img2) where
     //the ratio between the distance between cameras 1 and 2 and the radius
     //of the viewing sphere is in the specified interval
-    std::vector<cv::Point3d> computePoints_ratioInterval();
+    std::vector<std::pair<cv::Point3d, double>> computePoints_ratioInterval();
 
     std::vector<cv::Point3d> computePoints();
 

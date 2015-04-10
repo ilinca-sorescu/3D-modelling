@@ -15,7 +15,7 @@
 #include <mutex>
 
 #define white 16777215
-#define epsilon 0.001
+\\#define epsilon 0.0001
 
 using namespace std;
 using namespace cv;
@@ -207,7 +207,7 @@ Point3d PointCloudConstructor::ReadjustedTriangulation(
 //    double error = max(reprojectionError(C1, p1, Point3d(X(0), X(1), X(2))),
 //                     reprojectionError(C2, p2, Point3d(X(0), X(1), X(2))));
 
-    if((initialX.x > 12 || initialX.x < -12 ||
+ /*   if((initialX.x > 12 || initialX.x < -12 ||
         initialX.y > 12 || initialX.y < -12 ||
         initialX.z > 12 || initialX.z < -12)) {
       Matx41d R = A*X;
@@ -226,7 +226,7 @@ Point3d PointCloudConstructor::ReadjustedTriangulation(
       cout<<A(1, 0)<<" "<<A(1, 1)<<" "<<A(1, 2)<<endl;
       cout<<A(2, 0)<<" "<<A(2, 1)<<" "<<A(2, 2)<<endl;
       cout<<A(3, 0)<<" "<<A(3, 1)<<" "<<A(3, 2)<<endl<<endl;
-    }
+    }*/
   //  cout<<"reweighted X: "<<X(0)<<" "<<X(1)<<" "<<X(2)<<" "<<w1<<" "<<w2<<endl;
   }
 
@@ -246,7 +246,7 @@ vector<Point3d> PointCloudConstructor::filterByReprojectionError(
   vector<Point3d> good_points;
   for(auto i = 0u; i != points.size(); ++i)
     //if the reprojection error is small
-    if(points[i].second <= 0.0001) //changed this from 0.0003
+    if(points[i].second <= 0.000008) //changed this from 0.0003
       good_points.push_back(points[i].first);
 
   cout<<"Before filtering by reprojection error: "<<points.size()<<endl;
@@ -384,8 +384,8 @@ vector<pair<Point3d, double>> PointCloudConstructor::computePoints_ratioInterval
   cout<<"***Generating the point cloud***"<<endl;
 
   vector<pair<Point3d, double>> points3D;
-  const double MinRatio=0.0524;
-  const double MaxRatio=0.8;//used to be 0.2
+  const double MinRatio=0.0524;//used to be 0.0524;
+  const double MaxRatio=0.2;//used to be 0.2
  // double sum = 0;
  // int num = 0;
   double radius = distance(images[1]->getCameraPose(), Point3d(0, 0, 0));
@@ -420,7 +420,7 @@ vector<pair<Point3d, double>> PointCloudConstructor::computePoints_ratioInterval
       p2 = i;
       //cout<<p1<<" "<<p2<<" "<<endl;
       vector<TriangulatedPoint> triangulatedPoints = computePointsBetweenTwoImgs(p1, p2);
-      push_backMutex.lock();
+        push_backMutex.lock();
       for(auto tp:triangulatedPoints)
         points3D.push_back(make_pair(tp.point, tp.reprojectionError));
       push_backMutex.unlock();
@@ -488,12 +488,11 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   PointCloudConstructor *pcc;
-  if(argc < 2)
-    pcc = new PointCloudConstructor(folder);
-  else
-    pcc = new PointCloudConstructor(folder, NumberOfPics);
+  pcc = new PointCloudConstructor(folder, NumberOfPics);
   pcc->cloudToTxt("cloud.txt");
   pcc->cloudToPCD("cloud.pcd");
+
+
 
  /* Matx34d C1 = pcc->getImages()[306]->getCameraMatrix();
   Point3d p1 = pcc->getImages()[306]->getCameraPose();
