@@ -1,4 +1,4 @@
-
+  
 % Template for a Computer Science Tripos Part II project dissertation
 \documentclass[12pt,a4paper,twoside,openright]{report}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
@@ -12,6 +12,7 @@
 \usepackage{ragged2e}
 \newcolumntype{Y}{>{\RaggedRight\centering\arraybackslash}X}
 \usepackage{booktabs}
+\usepackage{wrapfig}
 
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
@@ -160,13 +161,13 @@ The ill-posed nature of the task is not the only complication which was expected
 \section{Related work}
 This section serves to present some of the work done in the field of 3D reconstruction and to discuss its techniques and results in the light of this project.\\
 \linebreak
-A list of 3D reconstruction software can be found at \url{http://en.wikipedia.org/wiki/Comparison_of_photogrammetry_software}. Most of the entries in this list do not fully reflect the aims of this project either because they make use of 3D scanners or other specialized hardware or because they don't provide support for automatic modeling. Nonetheless, the accuracy with which such software reconstructs an object is an important factor to consider when deciding whether this project should be considered a success.\\
+A list of 3D reconstruction software can be found in appendix A. Most of the entries in this list do not fully reflect the aims of this project either because they make use of 3D scanners or other specialized hardware or because they don't provide support for automatic modeling. Nonetheless, the accuracy with which such software reconstructs an object is an important factor to consider when deciding whether this project should be considered a success.\\
 \linebreak
 \begin{figure}
 \centerline{\includegraphics[scale=0.8]{figs/CHICKENS.jpg}}
 \caption{Results in the field of 3D reconstruction. The digital models of chickens are obtained using the web-based tool ARC3D. These models were constructed as part of the iMinds INSTANCE project.}
 \end{figure}
-Out of the software presented in the link above, the tool which best resembles the aims of this project is Ku Leuven's ARC3D\footnote{http://homes.esat.kuleuven.be/~visit3d/webservice/v2/}. This impressive web-based software is a free, fully-automatic tool for extracting a 3D model from a sequence of images. Its 3D photo gallery\footnote{http://homes.esat.kuleuven.be/~konijn/3d/} unveils a series of life-like models, some of which were even used in order to print replicas of the initial object.\\
+Out of the software presented in appendix A, the tool which best resembles the aims of this project is Ku Leuven's ARC3D\footnote{http://homes.esat.kuleuven.be/~visit3d/webservice/v2/}. This impressive web-based software is a free, fully-automatic tool for extracting a 3D model from a sequence of images. Its 3D photo gallery\footnote{http://homes.esat.kuleuven.be/~konijn/3d/} unveils a series of life-like models, some of which were even used in order to print replicas of the initial object.\\
 \linebreak
 ARC3D bases its computation on the notion of dense reconstruction\cite{tingdahl_lncs_11}. This is more powerful than the approach described in the following chapters of this document because it aims to estimate the depth of the scene at every pixel of the image, not only at a few relevant locations. Albeit dense reconstruction leads to better results, the risks involved in understanding, planning and implementing it in time make it an unfeasible approach for the core of this project. Due to the use of sparse reconstruction, the results of this project are expected to be noisier than those of ARC3D. 
 
@@ -180,7 +181,7 @@ The chapter starts off by identifying the requirements of the system, then it pr
 %Stereo vision is the process of recovering depth information from a pair of 2D %projections of the a scene as seen from two different viewpoints.\\ 
 %\textit{Although in this project more than two viewpoints will be used, the task of recovering 3D data from multiple 2D projections is difficult for the same fundamental reason as stereo vision is. For simplicity, this section will analyze the difficulties which arise from attempting to recover a 3D scene from two images.} \\
 
-\section{System Overview and Requirement Analysis}
+\section{System Overview and Requirements Analysis}
 This section aims to identify the requirements which must be fulfilled by any successful implementation of the system described in this document.\\
 In addition to serving as a criterion in deciding whether the project is successful or not, such an analysis is an inherent part of the early stages of the project because it provides a base for planning the implementation and for structuring the system.\\
 \linebreak
@@ -238,16 +239,28 @@ The purpose of the evaluation module is to analyze the performance of the point 
 
 
 \section{Dependency Analysis}
+To effectively plan the development of the system, I analyzed the dependencies between the functional components identified in the previous sections. Since the image generator and the surface reconstructor have not been decomposed into lower-level units up to this point, this section will focus only on the central part of this project, the point cloud constructor.\\
+Figure 2.2 reveals the high degree of interdependence between the different units of the point cloud construction module. I decided to deal with the intricacies of integrating these units together as early in the development as possible by implementing a very primitive first prototype. This prototype doesn't contain any filters or cloud exporters and it only imports two images whose corresponding camera matrices are known. This approach is a good fit for this project because it decouples the complex integration of units from the implementation of some of the components which carry a greater deal of difficulty or risk. 
 
 \begin{figure}
 \centerline{\includegraphics[scale=0.75]{figs/dependencies.png}}
-\caption{Dependencies between different units of the project}
+\caption{Dependencies between different units of the point cloud construction module}
 \end{figure}
 
 
 \section{Choice of Tools}
+
 \subsection{Programming Languages}
+The main programming language used throughout this project is C++. This choice is motivated by the need to take full advantage of computer vision and computational geometry open-source libraries such as \emph{OpenCV}, \emph{PCL} or \emph{GCAL} which are all written in C++. Another advantage of using C++ for implementing a system which deals with complex computations on images is its characteristic execution speed.\\
+I only used C/C++ before in order to implement small practice programs and for implementing the ticks in part IB. Consequently, I needed to adjust to writing C++ programs in an object-oriented fashion and to using features newly introduced in C++11 or in C++14.\\
+\linebreak
+Python was chosen for implementing the picture generator and parts of the evaluation module. The main reasons for doing so are library availability and the convenience with which one can write small scripts for interacting with C++ binaries.\\
+I had no experience with Python before taking on this project.   
+
 \subsection{Libraries}
+As mentioned before, this project relies heavily on libraries which provide working implementations of the tasks considered to be outside the purposes of this project, or just unfeasible to reimplement in the given period of time. Figure 2.3 shows the libraries which helped 
+bring about the successful completion of the project. The advantages and intricacies which accompanied the use of each of the libraries will be described in more detail in the implementation chapter, where they can be better put into context.
+
 \begin{figure}
 \centerline{\includegraphics[scale=0.8]{figs/libraries.png}}
 \caption{The libraries and other external software used in the development of this project. The white nodes represent modules of the project.}
@@ -259,17 +272,51 @@ A ray tracer accomplishes just that: given a three-dimensional description of a 
 I used \textbf{The Persistence of Vision RayTracer}, or \textbf{POV-Ray}, because it generates images from a text-based scene description. This gives me a lot of flexibility in setting the location of the camera and the light conditions of the scene for every snapshot in turn directly from the script.\\
 Another great advantage of \textbf{POV-Ray}\footnote{http://www.povray.org/} is that it comes with a free object collection (\url{http://objects.povworld.org/}). I can evaluate the results of my system on any one of these instead of having to create my own objects.\\
 Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.\footnote{http://hof.povray.org/}
+
 \subsection{The programming environment}
-\subsection{Versioning control}
-\section{Software engineering techniques}
+The development was carried out on my personal machine running Arch Linux (rolling release).\\ 
+The code was written in the \textit{Vim} text editor enhanced with several plug-ins for boosting productivity. The most important of these are \textit{syntastic}\footnote{https://github.com/scrooloose/syntastic} for highlighting errors directly inside the text editor and \textit{youcompleteme}\footnote{https://github.com/Valloric/YouCompleteMe} which provides as-you-type semantic code completion.\\
+Other command-line tools used for compiling and debugging the code include g++, gdb and the IPython console. The build system used for C/C++ source code will be explored in more detail in the implementation chapter.
+
+\subsection{Backup and Version control}
+\begin{minipage}{0.8\textwidth}
+I used \emph{Git} in order to keep track of the changes that occurred in the source code, configuration files, and in the \LaTeX\  source of this document. This choice is motivated by the ease of use and reliability of this system, as well as by my own familiarity with it.\\
+\linebreak
+A remote repository was assembled to back up the latest stable version in case of a crash. The \emph{Dropbox} file synchronization service was used to ensure the full recovery of the files which were not tracked by Git. One of the great advantages of this approach to backing up files is that it uploads all of the changes automatically, without having to rely on the user to explicitly do so.  
+\end{minipage}%
+\begin{minipage}{0.2\textwidth}
+	\begin{center}
+		\includegraphics[scale=0.25]{figs/gitlogo.png} \\
+		\hspace{42pt}\includegraphics[scale=0.1]{figs/dropboxlogo.png}
+	\end{center}
+\end{minipage}
+\subsection{Other Tools}
+\textit{Meshlab}\footnote{http://meshlab.sourceforge.net/} was used for  viewing and editing the resulting surface meshes. 
+
+\section{Software Engineering Techniques}
+Although the nature of Part II projects encourages the use of the \emph{waterfall model}, the components of this system which are associated with a high degree of risk would benefit from the rapid prototyping characteristic to \emph{iterative design}. In order to make the most of both paradigms I adopted the \emph{incremental build model}: \\
+To start off, system was split into the loosely-coupled modules (or 'builds') defined above. Each of the modules went independently through the stages of a waterfall-like model. After being implemented and tested   
+\linebreak
+This methodology is a sensible approach to the proposed system  
+
 \section{Summary}
+
 
 \chapter{Implementation}
 This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
-
-\section{Overview of the System}
-Reiterate in short what was in prep in overview
-\textit{Note on the division into prototypes: As specified in the project proposal, the development of the system was conducted in a prototyped fashion. This chapter presents the final version without discriminating between different prototypes. For a description of the differences between the prototypes see section !! of the evaluation chapter.}
+\linebreak
+\linebreak
+\linebreak
+{\Large\textbf{Overview of the System}} \\
+\linebreak
+As mentioned in the previous chapter, the system is comprised of four major parts:
+\begin{itemize}
+\item \textbf{Image Generator}
+\item \textbf{Point Cloud Constructor} 
+\item \textbf{Surface Reconstructor}
+\item \textbf{Evaluation Module}
+\end{itemize}
+Each of the following sections will focus on one of these modules. 
 
 \section{The Image Generator}
 As described in the previous section, this module produces a sequence of digital snapshots of a given three-dimensional object as seen from different locations in space. \\
@@ -325,7 +372,9 @@ Given the name of the input file, the number of snapshots to be produced(\textbf
 The \textit{.pov} files are rendered using \textbf{POV-Ray} to create the desired snapshots.
 
 \section{The Point Cloud Constructor}
-Given a sequence of snapshots, the point cloud constructor finds correspondences between pairs of snapshots and uses these correspondences to determine the three-dimensional position of points located on the surface of the object.   
+Given a sequence of snapshots, the point cloud constructor finds correspondences between pairs of snapshots and uses these correspondences to determine the three-dimensional position of points located on the surface of the object. \\
+\linebreak
+\textit{Note on the division into prototypes: As specified in the preparation chapter, a primitive prototype was implemented early on in the development of the system. This chapter presents the final version without discriminating between different prototypes. For a description of the differences between the prototypes see section !! of the evaluation chapter.}   
 \subsection{Libraries}
 \subsection{Language choice}
 \subsection{Point Cloud Constructor (class)}
@@ -359,5 +408,15 @@ In this section the user became  acquainted with the internal workings of the sy
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the appendices
 \appendix
+\chapter{Related Software}
+\begin{center}
+\includegraphics{relatedSoftwareTable.pdf}
+\end{center}
+
+\chapter{SConstruct}
+\verbatiminput{SConstruct.txt}
+
+\chapter{Project Proposal}
+\input{proposal}
 
 \end{document}

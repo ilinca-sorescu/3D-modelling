@@ -1,148 +1,165 @@
-% Note: this file can be compiled on its own, but is also included by
-% diss.tex (using the docmute.sty package to ignore the preamble)
-\documentclass[12pt,a4paper,twoside]{article}
-\usepackage[pdfborder={0 0 0}]{hyperref}
-\usepackage[margin=25mm]{geometry}
-\usepackage{graphicx}
-\begin{document}
 
+% Draft #1 (final?)
 \vfil
 
 \centerline{\Large Computer Science Project Proposal}
 \vspace{0.4in}
-\centerline{\Large How to write a dissertation in \LaTeX}
+\centerline{\Large Constructing 3D Models from Image Sequences}
 \vspace{0.4in}
-\centerline{\large M. Richards, St John's College}
+\centerline{\large I. G. Sorescu, Newnham College, igs23}
 \vspace{0.3in}
-\centerline{\large Originator: Dr M. Richards}
+\centerline{\large Originator: I. G. Sorescu}
 \vspace{0.3in}
-\centerline{\large 14 October 2011}
+\centerline{\large 24$^{th}$ October 2014}
 
 \vfil
 
 
 \noindent
-{\bf Project Supervisor:} Dr M. Richards
+{\bf Project Supervisor:} K. Palyutina
 \vspace{0.2in}
 
 \noindent
-{\bf Director of Studies:} Dr M. Richards
+{\bf Director of Studies:} Dr J. K. Fawcett
 \vspace{0.2in}
 \noindent
  
 \noindent
-{\bf Project Overseers:} Dr~F.~H.~King  \& Dr~A.~W.~Moore
+{\bf Project Overseers:} Dr~A.~C.~Rice  \& Dr~T.~G.~Griffin
 
 
 % Main document
 
-\section*{Introduction, The Problem To Be Addressed}
+\section*{Introduction and Description of the Work}
 
+The aim of this project is to extract a partial 3D model of a small object from a sequence of plain images and then to export the model into a 3D geometry format such as PLY. The resulting file can then be rendered and processed by MeshLab or similar mesh processing software.\\
 
-Many students write their CST dissertations in \LaTeX\ and spend a
-fair amount of time learning just how to do that. The purpose of this
-project is to write a demonstration dissertation that explains in
-detail how it done.
+The main focus of the project is to obtain a partial wireframe model from a sequence of images taken from pre-established locations with respect to the object. An open-source ray tracer will be used in order to set up a static scene consisting of the object to be reconstructed (placed in a well-lit environment against a white background). The sequence of input images will be acquired by taking digital snapshots of this scene from the pre-established locations, thus imitating the process of photographing the object with a pre-calibrated camera. The project is designed to be later extended to support real camera input.\\  
 
-This core proposal document will be augmented by a separately-printed
-cover sheet at the front and a resource form at the end. Additional
-sheets for risk assessment and human resources may also need to be
-included.
+What follows is a description of a technique which can be used in order to obtain the image sequences. The setup is described here in terms of photographing real objects in order to emphasize the fact that the project can naturally be extended to interact with a real camera. However, for the purposes of this project, this technique will be imitated by digitally constructing the equivalent snapshots of an existing 3D model in an attempt to reconstruct its shape (as seen from the sides).\\
 
-This document will repeat much of the material that is summarised on
-the additional sheets.
+Define an origin on a perfectly horizontal table and place the camera there facing a white background. Place an object of a pre-determined maximum height at a fixed distance from the origin in front of the camera. Take the first picture. Rotate the object by 30 degrees counter clockwise and take the second picture. Repeat until 12 pictures are taken. Input the pictures in the order in which they were taken. This process is assumed to have taken place in well-lit environment with no major light differences between pictures in the same set.\\
+The input generated using this process provides no information about the shape of the object as seen from above or below. The resulting partial 3D model must only be consisted with what is visible from the views provided.
 
 \section*{Starting Point}
-
-{\em Describe existing state of the art, previous work in this area,
-  libraries and databases to be used. Describe the state of any
-  existing codebase that is to be built on. }
-
-I am already able to write prose using the English language. I have an
-online dictionary, etc.
+I am planning to use an open-source ray tracer such as POV-Ray in order to create image sequences from an existing 3D model in an attempt to recreate its shape. I will also be using the feature detection and feature matching functionalities of OpenCV.
 
 \section*{Resources Required}
+Some open source libraries will be used as described in the previous section. They can be downloaded freely from http://www.povray.org/ and http://opencv.org/ respectively.\\
+MeshLab will be used in order to view the resulting 3D model. It can be downloaded from http://meshlab.sourceforge.net/.\\
 
-{\em A note of the resources required and confirmation of access.}
+No special hardware resources are required unless the extension to provide support for camera interaction is undertaken. The project is aimed at home users so it should work with any digital camera. I will be using my own camera.\\
 
-For this project I shall mainly use my own quad-core computer that
-runs Fedora Linux. Backup will be to github and/or to an SVN
-repository on an external hard disk that is dumped to writable CD/DVD
-media. I have another similar computer to hand should my main machine
-suddenly fail. I require no other special resources.
+I am also planning to use my own machine, doing regular backups to github and to PWF. I can resume the development on any of the machines in the Computer Lab should my machine fail. 
 
-\section*{Work to be done}
-
-{\em Describe the technical work.}
-
-The project breaks down into the following sub-projects:
-
+\section*{Substance and Structure of the Project}
+To ensure the successful completion of the project, the workload has been divided into the following manageable chunks:
 \begin{enumerate}
+\item {\bf Research:} Get familiar with epipolar geometry and with the algorithms mentioned in this section. 
+\item {\bf Module design:} Split the project into modules, establish how they interact, construct the corresponding UML diagrams. 
+\item {\bf Test harness:} Implement a test harness using POV-Ray. Given a 3D model, the test harness will generate the image sequences to be inputted into the partial 3D model generator by taking snapshots of the rendered model from each of the pre-established locations in turn. This module will also be used in order to evaluate the success of the project by adding measured error to the snapshots and measuring the accuracy of the outputted 3D model. Error can be added by rendering the object at a distance $\epsilon$ from the specified location, or by adding blur, for example.
+\item {\bf First prototype:} Implement triangularization in order to get the first prototype of a partial 3D constructor.
+\item {\bf Refinement of the partial 3D generator:} This step consists of iteratively improving the current prototype in order to get a more complete and more accurate 3D model. Some of the possible prototypes are listed below. They need not be all implemented if the current results are satisfactory. If multiple satisfactory prototypes are implemented they will be evaluated individually and included in the final solution. The users can then specify which one they would like to use. 
+	\begin{itemize}
+	\item Prototype \#{2}: Implement dense stereo matching [1][2] to estimate the depth of each point from a view point. Convert the results into a depth map [2]. The depth map can be directly used as a 3D model by displaying darker shades for more distant points. However, this cannot be exported into a common 3D geometry format so it should be used in conjunction with the algorithms described in prototype \#{3} to provide a complete solution. I consider this partial solution to be a prototype by itself because the ability to visualize the output enables me to evaluate the results of this intermediate step. This might prove useful in order to discuss whether using meshes was the right choice since many other approaches could be taken instead.
+	\item Prototype \#{3}: Construct the corresponding 3D mesh using depth map constructed in prototype \#{2}. A possible approach consists of overlying a 2D triangular mesh on top of one of the images and then wrapping the vertices of the triangles to correspond to the values in the depth map [1].
+	\item Prototype \#{4}: Use a volumetric depth map integration approach [1].
+	\item Prototype \#{5}: Implement a Kalman filter [1].  
+	\end{itemize}
+\item {\bf Evaluation:} Evaluate the results by comparing the output of the 3D model generator to the model used to generate the image sequences. 
+Different metrics can be used in order to compare the two models: difference in volume or the root-mean-square difference between vertex co-ordinates, for example.
 
-\item The construction of a skeleton dissertation with the required
-  structure. This involves writing the Makefile and makeing dummy
-  files for the title page, the proforma, chapters 1 to 5, the
-  appendices and the proposal.
-
-\item Filling in the details required in the cover page and proforma.
-
-\item Writing the contents of chapters 1 to 5, including examples of
-  common \LaTeX\ constructs.
-
-\item Adding a example of how to use floating figures and encapsulated
-  postscript diagrams.
-
+The sensitivity of the 3D model generator will be evaluated by adding measured error to the input (using the test harness) and comparing the output to that obtained from the equivalent error-free images.  
+\item {\bf Write the dissertation}     
 \end{enumerate}
 
-\section*{Success Criterion for the Main Result}
-
-
-The project will be a success if I have a completed dissertation with
-the correct chapter titles and I have achieved my other success
-criterion, which is to blah \ldots
-
-
+\section*{Success Criteria}
+The following must necessarily be achieved for the project to be considered a success:
+\begin{itemize}
+\item A tool for constructing 3D models from a sequence of digital snapshots produced as described in the introduction has been implemented. The tool will be evaluated and shown to work by applying it to an input consisting of sequential snapshots of a cube. 
+\end{itemize}
+The tool will be evaluated by considering only the traits of the object which can be deduced from the views provided. Therefore it is expected to provide a partial or inaccurate solution if the object contains a dent on the side facing the table, for example, or if it contains a sharp concavity which can only be completely determined from a certain angle which is not provided as input.  
 
 \section*{Possible Extensions}
+\begin{itemize}
+\item Add a camera module in order to provide support for real camera input (instead of using digital snapshots generated using a ray tracer).
+\item Add shadowing to the outputted 3D mesh. 
+\item Add texture to the outputted 3D mesh.
+\item Implement structure-from-motion and self-calibration: this would allow the users to input virtually any set of pictures representing an object as long as any consecutive pictures have a large overlap (i.e.: no need to pre-establish the camera pose for each photo in the sequence).
+\end{itemize}
 
-{\em Potential further envisaged evaluation metrics or extensions.}
+\section*{Timetable}
 
-If I achieve my main result early I shall try the following
-alternative experiment or method of evaluation \ldots
+\subsection*{Michaelmas Term Weeks 1 - 2 (10/10 to 23/10)}
+Read relevant literature and plan the project.\\
+{\bf Milestone:} Submit project proposal on 24/10.
 
+\subsection*{Michaelmas Term Weeks 3 - 4 (24/10 to 06/11)}
+Further research: gain a deeper understanding of triangularization, epipolar geometry, stereo matching, constructing depth maps and constructing 3D meshes from a depth map. If the time allows it also read about volumetric reconstruction and Kalman filters.  \\
+{\bf Milestone:} Finish writing an outline of the key concepts involved in the project on 07/11 and add it to the dissertation draft. Have the draft reviewed by the supervisor to check that this milestone was met.
 
-\section*{Timetable: Workplan and Milestones to be achieved.}
+\subsection*{Michaelmas Term Weeks 5 - 6 (07/11 - 20/11)}
+\begin{itemize}
+\item Plan and design the structure of the project: split into modules and establish how they interact.
+\item Get familiarized with the open source libraries used: play with the feature matching methods from OpenCV and with POV-Ray. Write a test program using OpenCV to confirm that I can use the feature matching methods properly.
+\end{itemize}
+{\bf Milestone:} Finish constructing UML diagrams on 21/11 and add them to the dissertation draft. Have the draft reviewed by the supervisor to check that this milestone was met. Finish writing the test program.
 
+\subsection*{Michaelmas Term Weeks 7 - 8 (21/11 - 04/12)}
+Catch-up time. Use this to ensure that the previous milestones are met. If time allows it, start implementing the test harness.
+	
+\subsection*{Vacation Weeks 1 - 2 (05/12 - 18/12)}
+Implement the test harness.\\
+{\bf Milestone:} Finish implementing the test harness on 19/12.
 
-{\em Perhaps list ten or so  two-week work-packages.}
+\subsection*{Vacation Weeks 3 - 4 (19/12 - 01/01)}
+Implement the first prototype.\\
+{\bf Milestone:} Have a basic but working implementation by 02/01.
+	
+\subsection*{Vacation Weeks 5 - 6 (02/01 - 15/01)}
+Catch-up time. This slot is here to ensure that I have a working (although basic) implementation by 16/01. If time allows it, start working on the second prototype.
 
-Planned starting date is 16/10/2011.
+\subsection*{Lent Term Weeks 1 - 2 (16/01 - 29/01)}
+Refine the solution by implementing a second prototype.\\
+{\bf Milestone:} Finish implementing a second prototype by 30/01.
 
-\begin{enumerate}
+\subsection*{Lent Term Weeks 3 - 4 (30/01 - 12/02)}
+Refine the solution. Implement as many of the prototypes defined in the \emph{Structure and Substance of the Project} section as considered necessary.\\ 
+{\bf Milestone:} Finish implementation of the core project by 13/02.
 
-\item {\bf Michaelmas weeks 2--4} Learn to use X. Read book Y. Read papers Z.
+\subsection*{Lent Term Weeks 5 - 6 (13/02 - 26/02)}
+Catch-up time. This is a good period to start working on the extensions if time allows it.\\
+{\bf Milestone:} Have a complete and working implementation by 27/02.
 
-\item {\bf Michaelmas weeks 5--6} Do preliminary test of Q.
+\subsection*{Lent Term Weeks 7 - 8 (27/02 - 12/03)}
+Evaluate the project. Construct performance graphs.\\
+{\bf Milestone:} Finish writing an outline of the evaluation section (including evaluation graphs) by 13/03 and add it to the dissertation draft. Have it reviewed by supervisor.
 
-\item {\bf Michaelmas weeks 7--8} Start implementation of main task A.
+\subsection*{Vacation Weeks 1 - 2 (13/03 - 26/03)}
+\begin{itemize}
+\item Start working on the dissertation: write the Preparation chapter and most of the Implementation chapter.
+\item \emph{optional:} Attempt to implement one of the extensions.
+\end{itemize}
+{\bf Milestone:} Have a complete Preparation chapter. Send the dissertation draft for review.
 
-\item {\bf Michaelmas vacation} Finish A and start main task B.
+\subsection*{Vacation Weeks 3 - 4 (27/03 - 09/04)}
+Write the dissertation.\\
+{\bf Milestone:} Have an imperfect but submittable dissertation draft by 10/04.
 
-\item {\bf Lent weeks 0--2} Write progress report. Generate corpus of
-  test examples. Finish task B.
+\subsection*{Vacation Weeks 5 - 6 (10/04 - 23/04)}
+Refine the dissertation. Progressively do modifications after getting feedback from supervisor.\\
+{\bf Milestone:} Finish writing and proof-reading the dissertation by 24/04.
 
-\item {\bf Lent weeks 3--5} Run main experiments and achieve working project.
+\subsection*{Easter Term Weeks 1 - 2 (24/04 - 07/05)}  
+Safety slot. Print and bind the dissertation.\\
+{\bf Milestone:} Submit the dissertation by 08/05
 
-\item {\bf Lent weeks 6--8} Second main deliverable here.
+\section*{References}
 
-\item {\bf Easter vacation:} Extensions and writing dissertation main
-  chapters.
+\begin{description}
 
-\item {\bf Easter term 0--2:}  Further evaluation and complete dissertation.
+\item{[1]}M. Pollefeys, \emph{3D from Image Sequences: Calibration, Motion and Shape Recovery}, Mathematical Models of Computer Vision: The Handbook, N. Paragios, Y. Chen, O. Faugeras, Springer, 2005.
 
-\item {\bf Easter term 3:} Proof reading and then an early submission
-  so as to concentrate on examination revision.
+\item{[2]} R. Szeliski, \emph{Computer Vision: Algorithms and Applications}, Springer Verlag 2011.
+\end{description}
 
-\end{enumerate}
-
-\end{document}

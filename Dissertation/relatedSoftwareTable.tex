@@ -1,0 +1,41 @@
+\documentclass[scriptsize,a4paper,twoside,openright]{report}
+\usepackage[left=0mm,
+ 			right=45mm,
+		    top=0mm,
+ 			bottom=20mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage{verbatim}
+\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\newcolumntype{Y}{>{\RaggedRight\centering\arraybackslash\rule{0pt}{4ex}}X}
+\usepackage{booktabs}
+\usepackage{wrapfig}
+
+\raggedbottom                           % try to avoid widows and orphans
+\sloppy
+\clubpenalty1000%
+\widowpenalty1000%
+
+\renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
+                                        % more readable
+
+\begin{document}
+
+
+\begin{center}
+\begin{table}
+\begin{tabularx}{\textwidth}{@{} Y c c c c @{}} % use 'Y' for first column
+\toprule
+\textbf{Software} & \textbf{Uses a 3D scanner} & \textbf{Automatic reconstruction} & \textbf{Vendor} & \textbf{Observations}\\ \hline
+\midrule
+ARC3D &   No       &     Yes      &   KU Leuven & Free\\ \hline \addlinespace
+ImageModeler&   No       &     No      &   Autodesk & \\  
+\bottomrule
+\end{tabularx}
+\label{table:nonlin}
+\end{table}
+\end{center}
+\end{document}

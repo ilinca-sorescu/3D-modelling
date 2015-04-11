@@ -15,12 +15,18 @@
 #include <mutex>
 
 #define white 16777215
-\\#define epsilon 0.0001
+#define epsilon 0.0001
 
 using namespace std;
 using namespace cv;
 using namespace boost::filesystem;
 using namespace pcl;
+
+double PointCloudConstructor::MinRatio = 0.0524;
+double PointCloudConstructor::MaxRatio = 0.2;
+double PointCloudConstructor::ReprojectionError = 0.000008;
+double PointCloudConstructor::Tolerance = 0.001;
+
 
 PointCloudConstructor::PointCloudConstructor(
     string folder,
@@ -246,7 +252,7 @@ vector<Point3d> PointCloudConstructor::filterByReprojectionError(
   vector<Point3d> good_points;
   for(auto i = 0u; i != points.size(); ++i)
     //if the reprojection error is small
-    if(points[i].second <= 0.000008) //changed this from 0.0003
+    if(points[i].second <= ReprojectionError) //changed this from 0.0003
       good_points.push_back(points[i].first);
 
   cout<<"Before filtering by reprojection error: "<<points.size()<<endl;
@@ -384,8 +390,6 @@ vector<pair<Point3d, double>> PointCloudConstructor::computePoints_ratioInterval
   cout<<"***Generating the point cloud***"<<endl;
 
   vector<pair<Point3d, double>> points3D;
-  const double MinRatio=0.0524;//used to be 0.0524;
-  const double MaxRatio=0.2;//used to be 0.2
  // double sum = 0;
  // int num = 0;
   double radius = distance(images[1]->getCameraPose(), Point3d(0, 0, 0));
@@ -394,7 +398,7 @@ vector<pair<Point3d, double>> PointCloudConstructor::computePoints_ratioInterval
 
   boost::basic_thread_pool pool(8);
   for(auto p1 = 0u; p1 != images.size(); ++p1)
-    pool.submit([this, p1, radius, &points3D, MinRatio, MaxRatio, &push_backMutex]() {
+    pool.submit([this, p1, radius, &points3D, &push_backMutex]() {
       //p2 = index of the closest image to p1 with ratio greater than MinRatio
      int p2;
 
@@ -464,6 +468,20 @@ void PointCloudConstructor::cloudToTxt(String outFile) {
   out.close();
 }
 
+void getParameterConfiguration(string configFile) {
+  ifstream in(configFile.c_str());
+  double minRatio, maxRatio, reprojectionError, tolerance;
+  in>>minRatio
+    >>maxRatio
+    >>reprojectionError
+    >>tolerance;
+
+  PointCloudConstructor::MinRatio = minRatio;
+  PointCloudConstructor::MaxRatio = maxRatio;
+  PointCloudConstructor::ReprojectionError = reprojectionError;
+  PointCloudConstructor::Tolerance = tolerance;
+}
+
 int main(int argc, char *argv[]) {
 	string folder = argc>1? argv[1]:".";
 
@@ -476,17 +494,21 @@ int main(int argc, char *argv[]) {
   cout<<r.val[0]<<" "<<r.val[1]<<" "<<r.val[2]<<endl;*/
 
   int NumberOfPics = -1;
+  string configFile;
   try {
-    if(argc > 2)
-      NumberOfPics = stoi(argv[2]);
+    NumberOfPics = stoi(argv[2]);
     if(NumberOfPics < 4)
       throw new Exception();
+    configFile=argv[3];
   } catch(...){
     cout<<"The second argument represents the maximum number "<<
       "of pictures taken as input. "<<
       "This number must be greater than 4."<<endl;
     return 0;
   }
+
+  getParameterConfiguration(configFile);
+
   PointCloudConstructor *pcc;
   pcc = new PointCloudConstructor(folder, NumberOfPics);
   pcc->cloudToTxt("cloud.txt");

@@ -20,7 +20,6 @@
 
 class PointCloudConstructor {
   public:
-    static double Epsilon;
     static double MinRatio;
     static double MaxRatio;
     static double ReprojectionError;

@@ -45,7 +45,6 @@ class FeatureMatcher {
      * The precision used to decide if a point
      * belongs to a line.
      */
-    const double tolerance = 0.001;
 
     /*
      * Distance from point p to line (a, b).
