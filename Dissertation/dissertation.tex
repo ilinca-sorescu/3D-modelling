@@ -12,8 +12,7 @@
 \usepackage{ragged2e}
 \newcolumntype{Y}{>{\RaggedRight\centering\arraybackslash}X}
 \usepackage{booktabs}
-\usepackage{wrapfig}
-
+% \usepackage{wrapfig}
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
 \clubpenalty1000%
@@ -374,16 +373,40 @@ The \textit{.pov} files are rendered using \textbf{POV-Ray} to create the desire
 \section{The Point Cloud Constructor}
 Given a sequence of snapshots, the point cloud constructor finds correspondences between pairs of snapshots and uses these correspondences to determine the three-dimensional position of points located on the surface of the object. \\
 \linebreak
-\textit{Note on the division into prototypes: As specified in the preparation chapter, a primitive prototype was implemented early on in the development of the system. This chapter presents the final version without discriminating between different prototypes. For a description of the differences between the prototypes see section !! of the evaluation chapter.}   
-\subsection{Libraries}
-\subsection{Language choice}
-\subsection{Point Cloud Constructor (class)}
-\subsection{Image (class)}
-\subsection{Feature Matcher (class)}
-\subsection{Additional filters}
-\subsection{Improving performance}
+As specified in the preparation chapter, a primitive prototype was implemented early on in the development of the system. This section starts by presenting the basic principles and techniques used for implementing this basic prototype, then it proceeds to explain the measures which were taken to improve on these early results. For a description of the differences between the performance of the prototypes see section !! of the evaluation chapter.
+
+\subsection{A Basic Prototype}
+
+\subsection{Importing the Images}
+
+\subsubsection{The Camera Matrix}
+\subsubsection{The Image Data Structure}
+
+\subsection{Feature Matching}
+\subsubsection{The Feature Matching Algorithm}
+\subsubsection{The Data Structure}
+
+\subsection{Constructing a 3D model}
+\subsubsection{Triangulation}
+\subsubsection{}
+
+\subsection{Multiple-View Reconstruction}
+The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views, and to present ways of resolving them.\\
+\newline
+
+\subsection{Refining the Reconstruction and Improving Performance}
+As mentioned right from the beginning of this document, the proposed system was expected to be highly error-prone. Consequently, a software engineering paradigm which allowed for repeatedly adding improvements to the initial design has been employed. This section aims to analyze these improvements.
+\subsubsection{Epipolar Filtering}
+\subsubsection{Filter by Reprojection Error}
+\subsubsection{Radius and Statistical Elimination Filters}
+\subsubsection{Optimizations and Parallelism}
+\subsubsection{Error-resilient Triangulation}
+
+\subsection{The Build System}
+By virtue of being the most complex module of the system, the point cloud constructor soon began to span over 10 source files and to have several dependencies. As a result, readjusting the \emph{Makefile} for every new insertion became a burdensome task. The preferred alternative was to use an open-source software construction tool, \emph{Scons}\footnote{http://www.scons.org/}, which provides built-in automatic dependency analysis. The configuration script for \emph{Scons} was substantially easier to maintain. An example of such a configuration script can be found in Appendix B.
 
 \section{The Surface Reconstructor}
+
 
 \section{Model Visualizers}
 
