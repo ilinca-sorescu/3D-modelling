@@ -1,5 +1,6 @@
 #include<iostream>
 #include<fstream>
+#include<cstdio>
 
 using namespace std;
 
@@ -12,6 +13,7 @@ const int bigStepNumPics = 500;
 
 const string pathToPCC = "~/Workspace/Project/3D-modelling/PointCloudConstructor/";
 const string pathToResults =  "~/Workspace/Project/3D-modelling/Evaluation/Data/";
+const string logFile = "Log";
 
 string createConfigFile(
     double minRatio,
@@ -33,6 +35,36 @@ string createConfigFile(
      <<numPics;
   ofs.close();
   return configFileName;
+}
+
+string execute(char* cmd) {
+  FILE* pipe = popen(cmd, "r");
+  if(!pipe)
+    return "ERROR";
+  char buffer[128];
+  string result = "\n";
+  while(!feof(pipe)) {
+    if(fgets(buffer, 128, pipe) != NULL)
+      result += buffer;
+  }
+  pclose(pipe);
+  return result;
+}
+
+void runPCC(
+    string inputFolder,
+    int numPics,
+    string configFileName) {
+  string command = "time " + pathToPCC + "PointCloudConstructor "
+    + inputFolder
+    + to_string(numPics)
+    + configFileName;
+  string time = execute((char*)command.c_str());
+
+  ofstream logging;
+  logging.open(logFile, std::ios_base::app);
+  logging<<configFileName<<" "<<time<<endl;
+  logging.close();
 }
 
 void gather(string inputFolder) {
