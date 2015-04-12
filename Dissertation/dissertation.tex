@@ -235,14 +235,15 @@ The purpose of the evaluation module is to analyze the performance of the point 
 \centerline{\includegraphics[scale=0.7]{figs/overview.png}}
 \caption{An overview of the system}
 \end{figure}
-
+ 
 
 \section{Dependency Analysis}
 To effectively plan the development of the system, I analyzed the dependencies between the functional components identified in the previous sections. Since the image generator and the surface reconstructor have not been decomposed into lower-level units up to this point, this section will focus only on the central part of this project, the point cloud constructor.\\
+\pagebreak
 Figure 2.2 reveals the high degree of interdependence between the different units of the point cloud construction module. I decided to deal with the intricacies of integrating these units together as early in the development as possible by implementing a very primitive first prototype. This prototype doesn't contain any filters or cloud exporters and it only imports two images whose corresponding camera matrices are known. This approach is a good fit for this project because it decouples the complex integration of units from the implementation of some of the components which carry a greater deal of difficulty or risk. 
 
 \begin{figure}
-\centerline{\includegraphics[scale=0.75]{figs/dependencies.png}}
+\centerline{\includegraphics[scale=0.7]{figs/dependencies.png}}
 \caption{Dependencies between different units of the point cloud construction module}
 \end{figure}
 
@@ -273,28 +274,30 @@ Another great advantage of \textbf{POV-Ray}\footnote{http://www.povray.org/} is 
 Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.\footnote{http://hof.povray.org/}
 
 \subsection{The programming environment}
-The development was carried out on my personal machine running Arch Linux (rolling release).\\ 
-The code was written in the \textit{Vim} text editor enhanced with several plug-ins for boosting productivity. The most important of these are \textit{syntastic}\footnote{https://github.com/scrooloose/syntastic} for highlighting errors directly inside the text editor and \textit{youcompleteme}\footnote{https://github.com/Valloric/YouCompleteMe} which provides as-you-type semantic code completion.\\
+The development was carried out on my personal computer running Arch Linux(rolling release).\\
+The programming environment used consists of the \textit{Vim} text editor enhanced with several plug-ins for boosting productivity. The most important of these are \textit{syntastic}\footnote{https://github.com/scrooloose/syntastic} for highlighting errors directly inside the text editor and \textit{youcompleteme}\footnote{https://github.com/Valloric/YouCompleteMe} which provides as-you-type semantic code completion.\\
 Other command-line tools used for compiling and debugging the code include g++, gdb and the IPython console. The build system used for C/C++ source code will be explored in more detail in the implementation chapter.
 
-\subsection{Backup and Version control}
-\begin{minipage}{0.8\textwidth}
-I used \emph{Git} in order to keep track of the changes that occurred in the source code, configuration files, and in the \LaTeX\  source of this document. This choice is motivated by the ease of use and reliability of this system, as well as by my own familiarity with it.\\
-\linebreak
+\subsection{Version control}
+The use of a version control system is crucial for the successful completion of a project of this scale. I used \emph{Git} in order to keep track of the changes that occurred in the source code, configuration files, and in the \LaTeX\  source of this document. The main reasons for choosing this particular version control system are the ease with which it can be coupled with a remote repository and my own experience with it.
+
+\subsection{Backup}
 A remote repository was assembled to back up the latest stable version in case of a crash. The \emph{Dropbox} file synchronization service was used to ensure the full recovery of the files which were not tracked by Git. One of the great advantages of this approach to backing up files is that it uploads all of the changes automatically, without having to rely on the user to explicitly do so.  
-\end{minipage}%
-\begin{minipage}{0.2\textwidth}
-	\begin{center}
-		\includegraphics[scale=0.25]{figs/gitlogo.png} \\
-		\hspace{42pt}\includegraphics[scale=0.1]{figs/dropboxlogo.png}
-	\end{center}
-\end{minipage}
+%\end{minipage}%
+%\begin{minipage}{0.2\textwidth}
+	%\begin{center}
+		%\\includegraphics[scale=0.18]{figs/gitcat.png}\\ 
+		%\vspace{10pt}
+%		\includegraphics[scale=0.1]{figs/dropboxlogo.png}
+	%\end{center}
+%\end{minipage}
 \subsection{Other Tools}
 \textit{Meshlab}\footnote{http://meshlab.sourceforge.net/} was used for  viewing and editing the resulting surface meshes. 
 
 \section{Software Engineering Techniques}
-Although the nature of Part II projects encourages the use of the \emph{waterfall model}, the components of this system which are associated with a high degree of risk would benefit from the rapid prototyping characteristic to \emph{iterative design}. In order to make the most of both paradigms I adopted the \emph{incremental build model}: \\
-To start off, system was split into the loosely-coupled modules (or 'builds') defined above. Each of the modules went independently through the stages of a waterfall-like model. After being implemented and tested   
+Although the nature of Part II projects promotes the use of the \emph{Waterfall Development Model}, the components of this system which are associated with a high degree of risk would benefit from the rapid prototyping characteristic to \emph{iterative design}. In order to make the most of both paradigms I adopted the \emph{Incremental Build Model}: \\
+After dividing the system into the loosely-coupled modules (or 'builds') defined above, 
+ Each of the modules went independently through the stages of a waterfall-like model. After being implemented and tested   
 \linebreak
 This methodology is a sensible approach to the proposed system  
 
@@ -373,17 +376,20 @@ The \textit{.pov} files are rendered using \textbf{POV-Ray} to create the desire
 \section{The Point Cloud Constructor}
 Given a sequence of snapshots, the point cloud constructor finds correspondences between pairs of snapshots and uses these correspondences to determine the three-dimensional position of points located on the surface of the object. \\
 \linebreak
-As specified in the preparation chapter, a primitive prototype was implemented early on in the development of the system. This section starts by presenting the basic principles and techniques used for implementing this basic prototype, then it proceeds to explain the measures which were taken to improve on these early results. For a description of the differences between the performance of the prototypes see section !! of the evaluation chapter.
+As specified in the preparation chapter, a primitive prototype has been implemented early on in the development of the system. This section starts by presenting the basic principles and techniques used for implementing this basic prototype, then it proceeds to explain the measures which were taken to improve on these early results. For a description of the differences between the performance of the prototypes see section !! of the evaluation chapter.
 
 \subsection{A Basic Prototype}
+A prototype was assembled to integrate basic implementations for the main functional requirements which are part of the point cloud constructor. This prototype is characterized by its disregarding of precision or accuracy. It also attempts to create a reconstruction from only two input images. 
 
 \subsection{Importing the Images}
-
 \subsubsection{The Camera Matrix}
+
 \subsubsection{The Image Data Structure}
 
 \subsection{Feature Matching}
+
 \subsubsection{The Feature Matching Algorithm}
+
 \subsubsection{The Data Structure}
 
 \subsection{Constructing a 3D model}
@@ -391,12 +397,18 @@ As specified in the preparation chapter, a primitive prototype was implemented e
 \subsubsection{}
 
 \subsection{Multiple-View Reconstruction}
-The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views, and to present ways of resolving them.\\
-\newline
+The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views and to present a solution for this type of reconstruction.
+
+\subsubsection{}
+\subsubsection{The Reconstruction Approach}
 
 \subsection{Refining the Reconstruction and Improving Performance}
 As mentioned right from the beginning of this document, the proposed system was expected to be highly error-prone. Consequently, a software engineering paradigm which allowed for repeatedly adding improvements to the initial design has been employed. This section aims to analyze these improvements.
 \subsubsection{Epipolar Filtering}
+Unlike the following improvements described in this section, the epipolar filtering is critical to an accurate reconstruction. The reason why it is not considered to be part of the basic prototype described above, however, is that epipolar filtering is not essential to the integration of the main components of this module. In contrast, it adds a great deal complexity to what was designed to be a simple first iteration in the incremental development model.\\
+\newline
+	
+
 \subsubsection{Filter by Reprojection Error}
 \subsubsection{Radius and Statistical Elimination Filters}
 \subsubsection{Optimizations and Parallelism}
@@ -408,7 +420,8 @@ By virtue of being the most complex module of the system, the point cloud constr
 \section{The Surface Reconstructor}
 
 
-\section{Model Visualizers}
+\section{The Model Visualizers}
+
 
 \section{The Evaluation Module}
 This module consists of independent pieces of code which serve the purpose of evaluating the performance of the other modules. It is used in order to automatically plot the accuracy of the resulting representation under different conditions by systematically varying the input arguments of the point cloud constructor and repeatedly rerunning  it to acquire data. 

@@ -24,6 +24,7 @@ class PointCloudConstructor {
     static double MaxRatio;
     static double ReprojectionError;
     static double Tolerance;
+    static string OutputFile;
     PointCloudConstructor(
         std::string folder,
         int wantedNumberOfPics = -1);

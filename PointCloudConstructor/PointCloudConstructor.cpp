@@ -26,7 +26,7 @@ double PointCloudConstructor::MinRatio = 0.0524;
 double PointCloudConstructor::MaxRatio = 0.2;
 double PointCloudConstructor::ReprojectionError = 0.000008;
 double PointCloudConstructor::Tolerance = 0.001;
-
+string PointCloudConstructor::OutputFile = "cloud";
 
 PointCloudConstructor::PointCloudConstructor(
     string folder,
@@ -471,15 +471,18 @@ void PointCloudConstructor::cloudToTxt(String outFile) {
 void getParameterConfiguration(string configFile) {
   ifstream in(configFile.c_str());
   double minRatio, maxRatio, reprojectionError, tolerance;
+  string outfile;
   in>>minRatio
     >>maxRatio
     >>reprojectionError
-    >>tolerance;
+    >>tolerance
+    >>outfile;
 
   PointCloudConstructor::MinRatio = minRatio;
   PointCloudConstructor::MaxRatio = maxRatio;
   PointCloudConstructor::ReprojectionError = reprojectionError;
   PointCloudConstructor::Tolerance = tolerance;
+  PointCloudConstructor::OutputFile = outfile;
 }
 
 int main(int argc, char *argv[]) {
@@ -499,7 +502,8 @@ int main(int argc, char *argv[]) {
     NumberOfPics = stoi(argv[2]);
     if(NumberOfPics < 4)
       throw new Exception();
-    configFile=argv[3];
+   // if(argc > 3)
+      configFile=argv[3];
   } catch(...){
     cout<<"The second argument represents the maximum number "<<
       "of pictures taken as input. "<<
@@ -507,12 +511,13 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  getParameterConfiguration(configFile);
+  //if(argc > 3)
+    getParameterConfiguration(configFile);
 
   PointCloudConstructor *pcc;
   pcc = new PointCloudConstructor(folder, NumberOfPics);
-  pcc->cloudToTxt("cloud.txt");
-  pcc->cloudToPCD("cloud.pcd");
+  pcc->cloudToTxt(PointCloudConstructor::OutputFile);
+  pcc->cloudToPCD(PointCloudConstructor::OutputFile + ".pcd");
 
 
 
