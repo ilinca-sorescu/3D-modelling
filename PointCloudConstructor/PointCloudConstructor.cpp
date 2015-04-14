@@ -15,7 +15,7 @@
 #include <mutex>
 
 #define white 16777215
-#define epsilon 0.0001
+#define epsilon 0.01
 
 using namespace std;
 using namespace cv;
@@ -470,19 +470,12 @@ void PointCloudConstructor::cloudToTxt(String outFile) {
 
 void getParameterConfiguration(string configFile) {
   ifstream in(configFile.c_str());
-  double minRatio, maxRatio, reprojectionError, tolerance;
-  string outfile;
-  in>>minRatio
-    >>maxRatio
-    >>reprojectionError
-    >>tolerance
-    >>outfile;
-
-  PointCloudConstructor::MinRatio = minRatio;
-  PointCloudConstructor::MaxRatio = maxRatio;
-  PointCloudConstructor::ReprojectionError = reprojectionError;
-  PointCloudConstructor::Tolerance = tolerance;
-  PointCloudConstructor::OutputFile = outfile;
+  in
+    >>PointCloudConstructor::MinRatio
+    >>PointCloudConstructor::MaxRatio
+    >>PointCloudConstructor::ReprojectionError
+    >>PointCloudConstructor::Tolerance
+    >>PointCloudConstructor::OutputFile;
 }
 
 int main(int argc, char *argv[]) {
@@ -514,12 +507,18 @@ int main(int argc, char *argv[]) {
   //if(argc > 3)
     getParameterConfiguration(configFile);
 
+  cout
+    <<PointCloudConstructor::MinRatio<<endl
+    <<PointCloudConstructor::MaxRatio<<endl
+    <<PointCloudConstructor::ReprojectionError<<endl
+    <<PointCloudConstructor::Tolerance<<endl
+    <<PointCloudConstructor::OutputFile<<endl;
+
+
   PointCloudConstructor *pcc;
   pcc = new PointCloudConstructor(folder, NumberOfPics);
   pcc->cloudToTxt(PointCloudConstructor::OutputFile);
   pcc->cloudToPCD(PointCloudConstructor::OutputFile + ".pcd");
-
-
 
  /* Matx34d C1 = pcc->getImages()[306]->getCameraMatrix();
   Point3d p1 = pcc->getImages()[306]->getCameraPose();
