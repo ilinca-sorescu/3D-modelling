@@ -1,15 +1,16 @@
 #include<iostream>
 #include<fstream>
 #include<cstdio>
+#include<fstream>
 
 using namespace std;
 
-const double stepMinRatio = 0.01;
-const double stepMaxRatio = 0.05;
+const double stepMinRatio = 0.02;
+const double stepMaxRatio = 0.1;
 const int smallStepNumPics = 50;
 const int bigStepNumPics = 500;
 
-const double eps = 0.0000001;
+const double eps = 0.00000001;
 
 const string pathToPCC = "~/Workspace/Project/3D-modelling/PointCloudConstructor/";
 const string pathToResults =  "~/Workspace/Project/3D-modelling/Evaluation/Data/";
@@ -59,10 +60,13 @@ void runPCC(
     int numPics,
     string configFileName) {
   cout<<configFileName<<": ";
-  string command = "time -o " + pathToResults + "time" + pathToPCC + "PointCloudConstructor "
+  string command = "time ("
+    + pathToPCC
+    + "PointCloudConstructor "
     + inputFolder + " "
     + to_string(numPics) + " "
-    + configFileName;
+    + configFileName + ") " +
+    "2> " + configFileName + "_time";
   cout<<command<<endl;
   string msg = execute((char*)command.c_str());
 
@@ -73,25 +77,34 @@ void runPCC(
 }
 
 void gather(string inputFolder) {
-  int currentStep = smallStepNumPics;
+  int currentStep = bigStepNumPics;
 
-  for(int numPics = 50; numPics <= 3000; numPics += currentStep) {
-    for(double reprojectionError = 0.1; reprojectionError >= eps; reprojectionError /= 10)
-      for(double tolerance = 0.1; tolerance >= eps; tolerance /= 10)
-        for(double minRatio = 0; minRatio != 0.1; minRatio += stepMinRatio)
-          for(double maxRatio = 0.05; maxRatio != 0.5; maxRatio += stepMaxRatio) {
+  for(int numPics = 3000; numPics >= 50; numPics -= currentStep) {
+    for(double minRatio = 0; minRatio <= 0.1; minRatio += stepMinRatio)
+      for(double maxRatio = 0.5; maxRatio >= 0.05; maxRatio -= stepMaxRatio)
+        for(double reprojectionError = 0.1; reprojectionError >= eps; reprojectionError /= 10) {
+          int nonempty = false;
+          for(double tolerance = 0.1; tolerance >= eps; tolerance /= 10) {
 
             string configFileName = createConfigFile(
-              minRatio,
-              maxRatio,
-              reprojectionError,
-              tolerance,
-              inputFolder,
-              numPics);
-          runPCC(inputFolder, numPics, configFileName);
+                minRatio,
+                maxRatio,
+                reprojectionError,
+                tolerance,
+                inputFolder,
+                numPics);
+            runPCC(inputFolder, numPics, configFileName);
+            ifstream cloudFile((configFileName+"_cloud").c_str());
+            if(cloudFile.peek() == std::ifstream::traits_type::eof())
+              break; //cloud file is empty
+            nonempty = true;
+
+          }
+          if(nonempty == false)
+            break;
     }
-    if(numPics > 500)
-      currentStep = bigStepNumPics;
+    if(numPics <= 500)
+      currentStep = smallStepNumPics;
   }
 }
 
