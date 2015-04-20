@@ -79,12 +79,16 @@ void runPCC(
 void gather(string inputFolder) {
   int currentStep = bigStepNumPics;
 
-  for(int numPics = 3000; numPics >= 50; numPics -= currentStep) {
-    for(double minRatio = 0; minRatio <= 0.1; minRatio += stepMinRatio)
-      for(double maxRatio = 0.5; maxRatio >= 0.05; maxRatio -= stepMaxRatio)
-        for(double reprojectionError = 0.1; reprojectionError >= eps; reprojectionError /= 10) {
-          int nonempty = false;
-          for(double tolerance = 0.1; tolerance >= eps; tolerance /= 10) {
+  for(int numPics = 3000; numPics >= 100; numPics -= 100) {
+   // for(double minRatio = 0; minRatio <= 0.1; minRatio += stepMinRatio)
+    //  for(double maxRatio = 0.5; maxRatio >= 0.05; maxRatio -= stepMaxRatio)
+     //   for(double reprojectionError = 0.01; reprojectionError >= eps; reprojectionError /= 10) {
+     //     int nonempty = false;
+      //    for(double tolerance = 0.01; tolerance >= eps; tolerance /= 10) {
+	double minRatio = 0;
+	double maxRatio = 0.5;
+	double reprojectionError = 0.0001;
+	double tolerance = 0.001;
 
             string configFileName = createConfigFile(
                 minRatio,
@@ -95,7 +99,7 @@ void gather(string inputFolder) {
                 numPics);
             runPCC(inputFolder, numPics, configFileName);
             ifstream cloudFile((configFileName+"_cloud").c_str());
-            if(cloudFile.peek() == std::ifstream::traits_type::eof())
+            /*if(cloudFile.peek() == std::ifstream::traits_type::eof())
               break; //cloud file is empty
             nonempty = true;
 
@@ -104,12 +108,13 @@ void gather(string inputFolder) {
             break;
     }
     if(numPics <= 500)
-      currentStep = smallStepNumPics;
+      currentStep = smallStepNumPics;*/
   }
 }
 
 int main(int argc, char* argv[]) {
-  if(argc < 1) {
+  srand(time(NULL));
+  if(argc < 2) {
     cout<<"introduce abs path to input folder!"<<endl;
     return 1;
   }

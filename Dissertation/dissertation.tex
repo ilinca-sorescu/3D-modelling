@@ -381,6 +381,9 @@ As specified in the preparation chapter, a primitive prototype has been implemen
 \subsection{A Basic Prototype}
 A prototype was assembled to integrate basic implementations for the main functional requirements which are part of the point cloud constructor. This prototype is characterized by its disregarding of precision or accuracy. It also attempts to create a reconstruction from only two input images. 
 
+\subsection{Overview of Computation}
+
+
 \subsection{Importing the Images}
 
 \subsubsection{The Camera Matrix}
@@ -396,12 +399,10 @@ A prototype was assembled to integrate basic implementations for the main functi
 \subsection{Constructing a 3D model}
 \subsubsection{Triangulation}
 
-\subsubsection{}
-
 \subsection{Multiple-View Reconstruction}
 The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views and to present a solution for this type of reconstruction.
 
-\subsubsection{}
+\subsubsection{Convert to World Coordinates}
 \subsubsection{The Reconstruction Approach}
 
 \subsection{Refining the Reconstruction and Improving Performance}
@@ -409,7 +410,21 @@ As mentioned right from the beginning of this document, the proposed system was 
 \subsubsection{Epipolar Filtering}
 Unlike the following improvements described in this section, the epipolar filtering is critical to an accurate reconstruction. The reason why it is not considered to be part of the basic prototype described above, however, is that epipolar filtering is not essential to the integration of the main components of this module. In contrast, it adds a great deal complexity to what was designed to be a simple first iteration in the incremental development model.\\
 \newline
-	
+Figure 3.1 
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.35]{figs/before_epi.png} \\
+\vspace{5pt}
+\includegraphics[scale=0.35]{figs/after_epi.png}	
+\caption{Before and after epipolar filtering}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.7]{figs/Epipolar_geometry.png}
+\end{center}
+\end{figure}
 
 \subsubsection{Filter by Reprojection Error}
 \subsubsection{Radius and Statistical Elimination Filters}
@@ -420,7 +435,7 @@ Unlike the following improvements described in this section, the epipolar filter
 By virtue of being the most complex module of the system, the point cloud constructor soon began to span over 10 source files and to have several dependencies. As a result, readjusting the \emph{Makefile} for every new insertion became a burdensome task. The preferred alternative was to use an open-source software construction tool, \emph{Scons}\footnote{http://www.scons.org/}, which provides built-in automatic dependency analysis. The configuration script for \emph{Scons} was substantially easier to maintain. An example of such a configuration script can be found in Appendix B.
 
 \section{The Surface Reconstructor}
-
+The surface reconstruction module is based on its entirety on the \emph{PCL} library\footnote{http://pointclouds.org/}. 
 
 \section{The Model Visualizers}
 
