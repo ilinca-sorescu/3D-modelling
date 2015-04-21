@@ -72,13 +72,11 @@ Supervisor:         & Karina Palyutina                  \\
 
 
 \section*{Original Aims of the Project}
-
-
+The design and implementation of a system which emulates the shape of a 3D model by first producing a sequence of snapshots of the input model as seen from multiple viewpoints and then constructing a new model which resembles the original input from these snapshots. This system must be accompanied by an evaluation module which will test the accuracy of the outcome.
 
 
 \section*{Work Completed}
-
-All that has been completed appears in this dissertation.
+All objectives drafted in the project proposal have been met: a system which generates snapshots of a 3D model has been assembled, along with a module for reconstructing the 3D model from images and an evaluation module. The accuracy of the results was plotted using the evaluation module and found to be adequate for a large enough set of input images.  
 
 \section*{Special Difficulties}
 None.
@@ -152,21 +150,22 @@ Each of the disobeyed conditions adds to the difficulty of the task:\\
 \item If there are multiple possible solutions for an inherent part of the task one must be able to identify which factors make a solution more probable than another. In the case of 3D reconstruction, determining the depth attributes of the scene can have more than one solution. The reasons for this will be discussed later.
 \item If the third condition is disobeyed, the solution is likely to be very error-prone.
 \end{itemize}
-The complexity of an ill-posed problem is very easy to underestimate. However, in some respects, providing an exact solution to such a problem is an \textit{AI-complete} task.\\
+The complexity of such problems is very easy to underestimate. However, in some respects, providing an exact solution to such a problem is an \textit{AI-complete} task.\\
 The working solutions of ill-posed problems in the field of computer vision attempt to go around this issue by approximating the result rather than determining it, or by placing some limitations on the input data. Unfortunately, in the case of 3D reconstruction, the result is still noticeably distorted in some cases.\\
 \linebreak
-The ill-posed nature of the task is not the only complication which was expected to arise. Other factors which increased the risk of the undertaking are having to rely on the performance of external libraries any my own inexperience with projects of this scale. 
+The difficulties mentioned above are not the only complication which was expected to arise. Other factors which increased the risk of the undertaking are having to rely on the performance of external libraries any my own lack of experience with projects of this scale. 
 
-\section{Related work}
-This section serves to present some of the work done in the field of 3D reconstruction and to discuss its techniques and results in the light of this project.\\
-\linebreak
-A list of 3D reconstruction software can be found in appendix A. Most of the entries in this list do not fully reflect the aims of this project either because they make use of 3D scanners or other specialized hardware or because they don't provide support for automatic modeling. Nonetheless, the accuracy with which such software reconstructs an object is an important factor to consider when deciding whether this project should be considered a success.\\
-\linebreak
 \begin{figure}
 \centerline{\includegraphics[scale=0.8]{figs/CHICKENS.jpg}}
 \caption{Results in the field of 3D reconstruction. The digital models of chickens are obtained using the web-based tool ARC3D. These models were constructed as part of the iMinds INSTANCE project.}
 \end{figure}
-Out of the software presented in appendix A, the tool which best resembles the aims of this project is Ku Leuven's ARC3D\footnote{http://homes.esat.kuleuven.be/~visit3d/webservice/v2/}. This impressive web-based software is a free, fully-automatic tool for extracting a 3D model from a sequence of images. Its 3D photo gallery\footnote{http://homes.esat.kuleuven.be/~konijn/3d/} unveils a series of life-like models, some of which were even used in order to print replicas of the initial object.\\
+\section{Related Work}
+This section serves to present some of the work done in the field of 3D reconstruction and to discuss its techniques and results in the light of this project.\\
+   \\
+\linebreak
+A list of 3D reconstruction software can be found in appendix A. Most of the entries in this list do not fully reflect the aims of this project either because they make use of 3D scanners or other specialized hardware or because they don't provide support for automatic modeling. Nonetheless, the accuracy with which such software reconstructs an object is an important factor to consider when deciding whether this project should be considered a success.\\
+\linebreak
+Out of the software presented in appendix A, the tool which best resembles the aims of this project is Ku Leuven's ARC3D\footnote{\url{http://homes.esat.kuleuven.be/~visit3d/webservice/v2/}}. This impressive web-based software is a free, fully-automatic tool for extracting a 3D model from a sequence of images. Its 3D photo gallery\footnote{\url{http://homes.esat.kuleuven.be/~konijn/3d/}} unveils a series of life-like models, some of which were even used in order to print replicas of the initial object.\\
 \linebreak
 ARC3D bases its computation on the notion of dense reconstruction\cite{tingdahl_lncs_11}. This is more powerful than the approach described in the following chapters of this document because it aims to estimate the depth of the scene at every pixel of the image, not only at a few relevant locations. Albeit dense reconstruction leads to better results, the risks involved in understanding, planning and implementing it in time make it an unfeasible approach for the core of this project. Due to the use of sparse reconstruction, the results of this project are expected to be noisier than those of ARC3D. 
 
@@ -243,7 +242,7 @@ To effectively plan the development of the system, I analyzed the dependencies b
 Figure 2.2 reveals the high degree of interdependence between the different units of the point cloud construction module. I decided to deal with the intricacies of integrating these units together as early in the development as possible by implementing a very primitive first prototype. This prototype doesn't contain any filters or cloud exporters and it only imports two images whose corresponding camera matrices are known. This approach is a good fit for this project because it decouples the complex integration of units from the implementation of some of the components which carry a greater deal of difficulty or risk. 
 
 \begin{figure}
-\centerline{\includegraphics[scale=0.7]{figs/dependencies.png}}
+\centerline{\includegraphics[scale=0.75]{figs/dependencies.png}}
 \caption{Dependencies between different units of the point cloud construction module}
 \end{figure}
 
@@ -257,25 +256,40 @@ I only used C/C++ before in order to implement small practice programs and for i
 Python was chosen for implementing the picture generator and parts of the evaluation module. The main reasons for doing so are library availability and the convenience with which one can write small scripts for interacting with C++ binaries.\\
 I had no experience with Python before taking on this project.   
 
-\subsection{Libraries}
-As mentioned before, this project relies heavily on libraries which provide working implementations of the tasks considered to be outside the purposes of this project, or just unfeasible to reimplement in the given period of time. Figure 2.3 shows the libraries which helped 
-bring about the successful completion of the project. The advantages and intricacies which accompanied the use of each of the libraries will be described in more detail in the implementation chapter, where they can be better put into context.
+\subsection{Libraries and other external software}
+As mentioned before, this project relies heavily on libraries which provide working implementations of the tasks considered to be outside the purposes of this project, or just unfeasible to implement from scratch in the given period of time. Figure 2.3 shows the libraries (and the standalone software) which helped bring about the successful completion of the project. The advantages and intricacies which accompanied the use of some of these libraries will be described in more detail in the implementation chapter, where they can be better put into context. The more important ones, however, are introduced in the paragraphs to follow:
 
 \begin{figure}
-\centerline{\includegraphics[scale=0.8]{figs/libraries.png}}
+\centerline{\includegraphics[scale=0.7]{figs/libraries1.png}}
 \caption{The libraries and other external software used in the development of this project. The white nodes represent modules of the project.}
 \end{figure}
-\subsection{The Ray Tracer} 
+\subsubsection{The Ray Tracer} 
 The purpose of one of the main parts of the system, the image generator, is to produce an alternative to photographs of a real-life object. The performance of the system will be evaluated based on what it produces when applied to this computer-generated input. Therefore, for this evaluation to be sound, the input used must be a near photo-realistic representation of the object.\\  
 \linebreak
 A ray tracer accomplishes just that: given a three-dimensional description of a scene, it creates a digital image of that scene as seen from a predefined location. Many of the ray tracers available yield pictures which are realistic enough for the purposes of this project. \\   
 I used \textbf{The Persistence of Vision RayTracer}, or \textbf{POV-Ray}, because it generates images from a text-based scene description. This gives me a lot of flexibility in setting the location of the camera and the light conditions of the scene for every snapshot in turn directly from the script.\\
-Another great advantage of \textbf{POV-Ray}\footnote{http://www.povray.org/} is that it comes with a free object collection (\url{http://objects.povworld.org/}). I can evaluate the results of my system on any one of these instead of having to create my own objects.\\
-Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.\footnote{http://hof.povray.org/}
+Another great advantage of \textbf{POV-Ray}\footnote{\url{http://www.povray.org/}} is that it comes with a free object collection (\url{http://objects.povworld.org/}). I can evaluate the results of my system on any one of these instead of having to create my own objects.\\
+Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.\footnote{\url{http://hof.povray.org/}}
+
+\subsubsection{OpenCV}
+A core task of the proposed system is solving the \emph{stereo correspondence problem}\footnote{Stereo correspondence = the problem of determining the corresponding parts between two images}. The most commonly used solution for this problem is the \emph{feature-based} approach:
+\begin{itemize}
+\item \textbf{detect features:} In each of the two images, find the  
+\item \textbf{extract feature descriptors:}
+\item \textbf{match features:}
+\end{itemize}
+\emph{OpenCV} is one of the very few open source computer vision libraries available. Its widespread usage suggests that it is reliable and would make for a competent choice for solving the stereo correspondence problem. It provides support for all of the above-mentioned tasks along with an easy-to-use built-in function for visualizing the resulting correspondences.
+
+\subsubsection{PCL}
+\emph{The Point Cloud Library}, or PCL\footnote{\url{http://pointclouds.org/}}, contains a vast collection of state-of-the-art algorithms for processing 2D or 3D sets of points. It consists of several modular libraries (filters, surface, kdtree etc.) which have proven useful for improving the results of different parts of this project. The surface reconstruction module, in particular, is heavily reliant on the algorithm for fast triangulation of unordered point clouds\cite{Marton09ICRA} provided by PCL\footnote{\url{http://pointclouds.org/documentation/tutorials/greedy_projection.php}}.
+
+\subsubsection{Qhull}
+One of the metrics used in the evaluation module in order to estimate the accuracy of the result is the volume of the convex hull of the resulting point cloud (see the chapter 4).\\
+Although constructing a tool for computing the convex hull of a set of 3D points is not a particularly difficult task (my implementation based on Franco Preparata and Ian Shamos's book on computational geometry\cite{Preparata} can be found at \url{https://github.com/ilinca-sorescu/convex-hull}), a more suitable alternative for evaluating the point cloud constructor is to use \emph{qhull}\footnote{\url{http://www.qhull.org/}} instead because it handles the roundoff errors which arise from doing floating point arithmetic and it provides various options for dealing with precision errors in estimating the volume of the resulting convex hull. 
 
 \subsection{The programming environment}
 The development was carried out on my personal computer running Arch Linux(rolling release).\\
-The programming environment used consists of the \textit{Vim} text editor enhanced with several plug-ins for boosting productivity. The most important of these are \textit{syntastic}\footnote{https://github.com/scrooloose/syntastic} for highlighting errors directly inside the text editor and \textit{youcompleteme}\footnote{https://github.com/Valloric/YouCompleteMe} which provides as-you-type semantic code completion.\\
+The programming environment used consists of the \textit{Vim} text editor enhanced with several plug-ins for boosting productivity. The most important of these are \textit{syntastic}\footnote{\url{https://github.com/scrooloose/syntastic}} for highlighting errors directly inside the text editor and \textit{youcompleteme}\footnote{\url{https://github.com/Valloric/YouCompleteMe}} which provides as-you-type semantic code completion.\\
 Other command-line tools used for compiling and debugging the code include g++, gdb and the IPython console. The build system used for C/C++ source code will be explored in more detail in the implementation chapter.
 
 \subsection{Version control}
@@ -292,17 +306,17 @@ A remote repository was assembled to back up the latest stable version in case o
 	%\end{center}
 %\end{minipage}
 \subsection{Other Tools}
-\textit{Meshlab}\footnote{http://meshlab.sourceforge.net/} was used for  viewing and editing the resulting surface meshes. 
+\textit{Meshlab}\footnote{\url{http://meshlab.sourceforge.net/}} and \textit{Geomview}\footnote{\url{http://www.geomview.org/}} were used for  viewing and editing the resulting surface meshes. 
 
 \section{Software Engineering Techniques}
 Although the nature of Part II projects promotes the use of the \emph{Waterfall Development Model}, the components of this system which are associated with a high degree of risk would benefit from the rapid prototyping characteristic to \emph{iterative design}. In order to make the most of both paradigms I adopted the \emph{Incremental Build Model}: \\
 After dividing the system into the loosely-coupled modules (or 'builds') defined above, 
  Each of the modules went independently through the stages of a waterfall-like model. After being implemented and tested   
 \linebreak
-This methodology is a sensible approach to the proposed system  
+This methodology is a sensible approach to the proposed system
 
 \section{Summary}
-
+This chapter provides a description of what was the intended outcome of this project and of the choices made prior to implementation in order to ensure its successful completion. 
 
 \chapter{Implementation}
 This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
@@ -350,7 +364,7 @@ This module is executed as a console application. The user must specify the foll
 \end{itemize}
 
 
-\subsection{Language and libraries}
+\subsection{Language and Libraries}
 The image generator was implemented using Python. The main factor involved in this decision was the availability of a lightweight library for dealing with templates. I used \textbf{Mako} (\url{http://www.makotemplates.org/}) in order to create \textit{.pov} files from the template \textit{povTemplate.mako}: 
 
 \begin{verbatim}
@@ -369,7 +383,7 @@ camera {
 The \textit{.inc} file which defines the input model is included in the first line of the template. \\
 I chose to use this approach because it is a painless and straightforward way to control the location of the camera and the light conditions of the scene regardless of the input model used. 
 
-\subsection{Effect and output}
+\subsection{Effect and Output}
 Given the name of the input file, the number of snapshots to be produced(\textbf{N}) and the radius of the sphere considered(\textbf{R}), the image generator determines \textbf{N} points uniformly distributed on the surface of the sphere of radius \textbf{R} centered in origin. These \textbf{N} points represent the locations from which the snapshots will be taken. For each of these camera locations a new \textit{.pov} file will be generated from the \textbf{Mako} template as described in the previous section. Note that the camera is always pointing towards the origin. \\
 The \textit{.pov} files are rendered using \textbf{POV-Ray} to create the desired snapshots.
 
@@ -432,26 +446,35 @@ Figure 3.1
 \subsubsection{Error-resilient Triangulation}
 
 \subsection{The Build System}
-By virtue of being the most complex module of the system, the point cloud constructor soon began to span over 10 source files and to have several dependencies. As a result, readjusting the \emph{Makefile} for every new insertion became a burdensome task. The preferred alternative was to use an open-source software construction tool, \emph{Scons}\footnote{http://www.scons.org/}, which provides built-in automatic dependency analysis. The configuration script for \emph{Scons} was substantially easier to maintain. An example of such a configuration script can be found in Appendix B.
+By virtue of being the most complex module of the system, the point cloud constructor soon began to span over 10 source files and to have several dependencies. As a result, readjusting the \emph{Makefile} for every new insertion became a burdensome task. The preferred alternative was to use an open-source software construction tool, \emph{Scons}\footnote{\url{http://www.scons.org/}}, which provides built-in automatic dependency analysis. The configuration script for \emph{Scons} was substantially easier to maintain. An example of such a configuration script can be found in Appendix B.
 
 \section{The Surface Reconstructor}
-The surface reconstruction module is based on its entirety on the \emph{PCL} library\footnote{http://pointclouds.org/}. 
+The surface reconstruction module is based on its entirety on the \emph{PCL} library. 
 
 \section{The Model Visualizers}
 
 
 \section{The Evaluation Module}
-This module consists of independent pieces of code which serve the purpose of evaluating the performance of the other modules. It is used in order to automatically plot the accuracy of the resulting representation under different conditions by systematically varying the input arguments of the point cloud constructor and repeatedly rerunning  it to acquire data. 
+This module consists of independent pieces of code which serve the purpose of evaluating the performance of the other modules. It is used in order to automatically plot the accuracy of the outcome under different conditions by systematically varying the input arguments of the point cloud constructor and repeatedly rerunning the latter in order to acquire data. 
+\subsection{The Data Gatherer}
+\subsection{The Plot Maker}
 
 \section{Summary} 
-In this section the user became  acquainted with the internal workings of the system.  
+In this section the reader became  acquainted with the internal workings of the system.  
 
 
 \chapter{Evaluation}
-
+\section{General Results}
+\section{Unit Testing}
+\section{Accuracy of Reconstruction}
+\section{Error-resilience}
+\section{Performance Analysis}
+\section{Summary}
 
 \chapter{Conclusion}
-
+\section{Achievements}
+\section{Lessons Learned}
+\section{Future Work}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the bibliography
@@ -462,9 +485,9 @@ In this section the user became  acquainted with the internal workings of the sy
 % the appendices
 \appendix
 \chapter{Related Software}
-\begin{center}
+
 \includegraphics{relatedSoftwareTable.pdf}
-\end{center}
+
 
 \chapter{SConstruct}
 \verbatiminput{SConstruct.txt}

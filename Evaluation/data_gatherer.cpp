@@ -79,13 +79,13 @@ void runPCC(
 void gather(string inputFolder) {
   int currentStep = bigStepNumPics;
 
-  for(int numPics = 3000; numPics >= 100; numPics -= 100) {
+  for(int numPics = 2200; numPics >= 100; numPics -= 100) {
    // for(double minRatio = 0; minRatio <= 0.1; minRatio += stepMinRatio)
     //  for(double maxRatio = 0.5; maxRatio >= 0.05; maxRatio -= stepMaxRatio)
      //   for(double reprojectionError = 0.01; reprojectionError >= eps; reprojectionError /= 10) {
      //     int nonempty = false;
       //    for(double tolerance = 0.01; tolerance >= eps; tolerance /= 10) {
-	double minRatio = 0;
+	double minRatio = 0.04;
 	double maxRatio = 0.5;
 	double reprojectionError = 0.0001;
 	double tolerance = 0.001;

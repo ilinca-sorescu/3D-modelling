@@ -1,6 +1,6 @@
 \documentclass[scriptsize,a4paper,twoside,openright]{report}
 \usepackage[left=0mm,
- 			right=45mm,
+ 			right=35mm,
 		    top=0mm,
  			bottom=20mm]{geometry}  % adjusts page layout
 \usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
@@ -12,7 +12,7 @@
 \usepackage{ragged2e}
 \newcolumntype{Y}{>{\RaggedRight\centering\arraybackslash\rule{0pt}{4ex}}X}
 \usepackage{booktabs}
-\usepackage{wrapfig}
+%\usepackage{wrapfig}
 
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
@@ -27,12 +27,17 @@
 
 \begin{center}
 \begin{table}
-\begin{tabularx}{\textwidth}{@{} Y c c c c @{}} % use 'Y' for first column
+\begin{tabularx}{\textwidth}{@{} Y Y c c c @{}} % use 'Y' for first column
 \toprule
-\textbf{Software} & \textbf{Uses a 3D scanner} & \textbf{Automatic reconstruction} & \textbf{Vendor} & \textbf{Observations}\\ \hline
+\textbf{Software} & \textbf{Additional hardware} & \textbf{Automatic reconstruction} & \textbf{Vendor} & \textbf{Observations}\\ \hline
 \midrule
-ARC3D &   No       &     Yes      &   KU Leuven & Free\\ \hline \addlinespace
-ImageModeler&   No       &     No      &   Autodesk & \\  
+ARC3D &   None       &     Yes      &   KU Leuven & Free\\ \hline \addlinespace
+KSCAN3D &  Kinect or Xtion sensors & Yes & LMI Technologies& \\ \hline \addlinespace
+SCENECT & Microsoft Kinect V1 or ASUS Xtion Pro Live& Yes & FARO & Free\\ \hline \addlinespace
+SCANIFY& Scanify handheld 3D scanner& Yes & FUEL3D &\\ \hline \addlinespace 
+ImageModeler&   None       &     No      &   Autodesk & \\  \hline \addlinespace
+Photosculpt&  None      &    Yes       & Hippolyte Mounier &Only 2 input images\\ \hline \addlinespace
+3DF Zephyr&   None       &     Yes      &   3DFlow & \\  
 \bottomrule
 \end{tabularx}
 \label{table:nonlin}

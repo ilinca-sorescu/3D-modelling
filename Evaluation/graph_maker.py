@@ -29,6 +29,8 @@ def loadConfigData(filename):
     outputFilename    = f.readline().strip()
     inputFolder       = f.readline().strip()
     numPics           = int(f.readline())
+    if numPics == 1600:
+        print(filename + " " + str(getTimeData(filename)) + "!!!!")
     return {'minRatio':minRatio,
             'maxRatio':maxRatio,
             'reprojectionError':reprojectionError,
@@ -63,7 +65,7 @@ def pointsToPlot(xField, fy, configDictList):
                 'y':fy(configDict['configFilename']),
                 'dict':configDict})
         except ErrorGatheringPlotData:
-            print(configDict['configFilename'])
+            print("Error getting plot data for: " + configDict['configFilename'])
             #pass
     return p
 
@@ -125,19 +127,23 @@ def getTimeData(configFilename):
         f = open(configFilename + "_time")
         s = f.read()
         numbers = re.findall(r"\d+\.?\d*", s)
-        seconds = numbers[1]*60+numbers[2]
-        if seconds < 60:
-            print(seconds)
-            print(configFilename)
-            print(numbers[1])
+        if int(numbers[0].strip()) < 60:
+            raise ErrorGatheringPlotData
+        seconds = int(numbers[1].strip())*60+float(numbers[2].strip())
         return seconds
     except:
         raise ErrorGatheringPlotData
 
 def plot(points, label):
     points = sorted(points, key = lambda p : p['x'])
+    #xs = sorted(set([p['x'] for p in points]))
+    #ys = []
+    #for x in xs:
+    #    ys.append(sorted(points, key = lambda p : p['y'] if p['x'] == x else 0)[-1]['y'])
     xs = [p['x'] for p in points]
     ys = [p['y'] for p in points]
+    print(xs)
+    print(ys)
     pl.plot(xs, ys, label=label)
 
 allConfigFiles = []
@@ -145,16 +151,18 @@ paths = validConfigPaths("/home/ailinca/Workspace/Project/3D-modelling/Evaluatio
 for configFile in paths:
     allConfigFiles.append(loadConfigData(configFile))
 specifiedFields = {
-            'minRatio':0,
+            'minRatio':0.04,
             'maxRatio':0.5,
             'reprojectionError':0.0001,
             'tolerance':0.001,
-            'inputFolder':"/home/ailinca/Workspace/Project/3D-modelling/Inputs/Rubic6"
+            'inputFolder':"/home/ailinca/Workspace/Project/3D-modelling/Inputs/Rubic6",
             }
 relevantConfigs = filterConfigs(specifiedFields, allConfigFiles)
 print(len(relevantConfigs))
-plot(pointsToPlot('numPics', getQhullFacets, relevantConfigs), "Number of facets")
-plot(pointsToPlot('numPics', getQhullNumHullVertices, relevantConfigs), "Number of points in convex hull")
+plot(pointsToPlot('numPics', getQhullVolume, relevantConfigs), "Total Volume")
+plot(pointsToPlot('numPics', getQhullTotalFacetArea, relevantConfigs), "Total Facet Area")
 #plot(pointsToPlot('numPics', getTimeData, relevantConfigs), "Time")
 pl.legend(loc='upper left')
+pl.xlabel("Number of input images")
+#pl.ylabel("Real running time (s)")
 pl.show()
