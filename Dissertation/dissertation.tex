@@ -12,6 +12,7 @@
 \usepackage{ragged2e}
 \newcolumntype{Y}{>{\RaggedRight\centering\arraybackslash}X}
 \usepackage{booktabs}
+\usepackage{changepage}
 % \usepackage{wrapfig}
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
@@ -274,10 +275,11 @@ Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free r
 \subsubsection{OpenCV}
 A core task of the proposed system is solving the \emph{stereo correspondence problem}\footnote{Stereo correspondence = the problem of determining the corresponding parts between two images}. The most commonly used solution for this problem is the \emph{feature-based} approach:
 \begin{itemize}
-\item \textbf{detect features:} In each of the two images, find the  
-\item \textbf{extract feature descriptors:}
-\item \textbf{match features:}
+\item \textbf{detect features:} In each of the two images, find the key locations (or features) which are likely to be relevant in determining a correspondence. In scale-invariant feature detection, the features are defined as the locations of maxima and minima of the result of difference of Gaussians.   
+\item \textbf{extract feature descriptors:} For each of these features, extract relevant information about the surrounding area which can be used to identify similar feature points.
+\item \textbf{match features:} For a given descriptor in the first image, find the most similar descriptor in the second image.  
 \end{itemize}
+
 \emph{OpenCV} is one of the very few open source computer vision libraries available. Its widespread usage suggests that it is reliable and would make for a competent choice for solving the stereo correspondence problem. It provides support for all of the above-mentioned tasks along with an easy-to-use built-in function for visualizing the resulting correspondences.
 
 \subsubsection{PCL}
@@ -309,15 +311,14 @@ A remote repository was assembled to back up the latest stable version in case o
 \textit{Meshlab}\footnote{\url{http://meshlab.sourceforge.net/}} and \textit{Geomview}\footnote{\url{http://www.geomview.org/}} were used for  viewing and editing the resulting surface meshes. 
 
 \section{Software Engineering Techniques}
-Although the nature of Part II projects promotes the use of the \emph{Waterfall Development Model}, the components of this system which are associated with a high degree of risk would benefit from the rapid prototyping characteristic to \emph{iterative design}. In order to make the most of both paradigms I adopted the \emph{Incremental Build Model}: \\
-After dividing the system into the loosely-coupled modules (or 'builds') defined above, 
- Each of the modules went independently through the stages of a waterfall-like model. After being implemented and tested   
-\linebreak
-This methodology is a sensible approach to the proposed system
+Although the nature of Part II projects promotes the use of the \emph{Waterfall Development Model}, the components of this system which are associated with a high degree of risk would benefit from the rapid prototyping characteristic to \emph{iterative design}. One way to make the most of both paradigms is to adopt the \emph{Incremental Build Model}:\\
+\begin{adjustwidth}{0.7cm}{}
+The process begins by analyzing the requirements dividing the task into the loosely-coupled modules (or 'builds') defined above (see sections 2.2 and 2.3). Each of the modules go independently through the stages of a waterfall-like model: they are designed, implemented and then tested and evaluated accordingly. If the result of the evaluation is not yet satisfactory for a given build, it will go through all of the stages again until adequate results are achieved.\\
+\end{adjustwidth} 
+This methodology provides a sensible approach for implementing the proposed system because even though the main objectives are clearly set right from the beginning (thus maximizing the probability of meeting the success criteria) some initially under-specified implementation details are more flexible and can change as a result of the analysis done at the previous iterations. This aids the exploratory nature of the point cloud construction module in particular.  
 
 \section{Summary}
-This chapter provides a description of what was the intended outcome of this project and of the choices made prior to implementation in order to ensure its successful completion. 
-
+This chapter provided a description of the intended outcome of this project and of the choices made prior to implementation in order to ensure its successful completion. It outlined the main requirements and explained how they were refined into a high-level structure of the system, explained the arguments which sustain the choice of several tools and programming languages and provided a description of a suitable implementation approach.
 \chapter{Implementation}
 This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
 \linebreak
