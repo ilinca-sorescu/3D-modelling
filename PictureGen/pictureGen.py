@@ -53,15 +53,16 @@ def plot(points):
     ax.scatter(x,y,z)
     plt.show()
 
-dir='PovImages'
-
 parser = argparse.ArgumentParser('Generates images from the specified .inc file. ' +
         'The output folder is: %s.'%dir)
 parser.add_argument('filename', type=lambda s:file_extensions(("inc"), s), help='name of the .inc file')
 parser.add_argument('N', type=check_negative, help='number of output images')
 parser.add_argument('d', type=check_negative, help='the size (in PovRay units) of a cube centered in the origin such ' +
     'that the object in the specified .inc file is positioned inside the cube')
+parser.add_argument('folder', type=str, help='destination folder')
 args = parser.parse_args()
+
+dir = args.folder
 
 from mako.template import Template
 povTemplate = Template(filename=os.path.join(os.path.dirname(__file__), 'povTemplate.mako'))
