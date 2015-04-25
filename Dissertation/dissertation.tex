@@ -452,9 +452,59 @@ The relation between 3-space and 2-space, as defined by the pinhole camera, can 
 \begin{equation}
 \mathbf{y = C_{0}X}
 \end{equation}
-In this equation \textbf{X} and \textbf{y} are the homogeneous coordinates of the point in object space and its correspondent in the image plane respectively. \\
+In this equation \textbf{X} and \textbf{y} are the homogeneous coordinates of the point in object space and its correspondent in the image plane respectively.\\
+For the basic pinhole camera model, the camera matrix $C_{0}$ is:
+\[ C_{0}=\left(\begin{array}{cccc}
+f & 0 & 0 & 0 \\
+0 & f & 0 & 0 \\
+0 & 0 & 1 & 0\end{array} \right)\]
+Assuming that $f = 1$, $\mathbf{C_{0}} = \left ( \begin{array} {c|c} \mathbf{I} & \mathbf{0} \end{array} \right )$
+\\
+\linebreak
+More often than not, the 3D locations are not specified in a camera-centric coordinate system but in an arbitrary one, in world coordinates. A more general form of equation (3.1) relates $y$ to $X'$, the correspondent in homogeneous world coordinates of point $X$:
+\begin{equation}
+\mathbf{y = CX'},\hspace{20pt} \mathbf{C} = \left ( \begin{array} {c|c} \mathbf{R} & \mathbf{t} \end{array} \right )\\
+\end{equation} where $R$ is a 3x3 rotation matrix and $t$ is a translation column vector. For the derivation of equations 3.1 and 3.2 from basic principles of the pinhole camera model see Appendix C.\\
+\linebreak
 
-+ look-at camera!
+\subsubsection{Locate Features in Image Coordinates}
+Assumption: the default height in Pov-ray is 1 (from -0.5 to 0.5)
+\begin{verbatim}
+Point2d FeatureMatcher::scaleToCameraUnits(Point2d p, Mat m) {
+  double ratio = m.size().width/m.size().height;
+  return Point2d(p.x/m.size().width*ratio,
+                 p.y/m.size().height);
+}
+
+//p1 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.queryIdx in img1.
+//p2 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.trainIdx in img2.
+void FeatureMatcher::cameraCoordinatesOfDMatch(
+    DMatch m,
+    shared_ptr<Image> img1,
+    shared_ptr<Image> img2,
+    Point2d& p1,
+    Point2d& p2) {
+
+  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
+  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
+
+  Mat m1 = img1->getMat();
+  Mat m2 = img2->getMat();
+  //translate coordinate system to camera plane
+  p1 = Point2d(feature1.pt.x - m1.size().width/2,
+               feature1.pt.y - m1.size().height/2);
+  p2 = Point2d(feature2.pt.x - m2.size().width/2,
+               feature2.pt.y - m2.size().height/2);
+
+  //scale to camera coordinates
+  p1 = scaleToCameraUnits(p1, m1);
+  p2 = scaleToCameraUnits(p2, m2);
+}
+
+\end{verbatim}
+
 \subsection{From views to 3D points}
 This section introduces the process of determining the location in 3-space of points on the surface of the object based solely on the information gathered from the two views.\\
 \linebreak
@@ -512,44 +562,7 @@ z \\
 
 \subsection{Multiple-View Reconstruction}
 The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views and to present a solution for this type of reconstruction.
-
-\subsubsection{Convert to World Coordinates}
-Assumption: the default height in Pov-ray is 1 (from -0.5 to 0.5)
-\begin{verbatim}
-Point2d FeatureMatcher::scaleToCameraUnits(Point2d p, Mat m) {
-  double ratio = m.size().width/m.size().height;
-  return Point2d(p.x/m.size().width*ratio,
-                 p.y/m.size().height);
-}
-
-//p1 - the 2D point (in camera coordinates) corresponding to the location of
-//     the feature with id m.queryIdx in img1.
-//p2 - the 2D point (in camera coordinates) corresponding to the location of
-//     the feature with id m.trainIdx in img2.
-void FeatureMatcher::cameraCoordinatesOfDMatch(
-    DMatch m,
-    shared_ptr<Image> img1,
-    shared_ptr<Image> img2,
-    Point2d& p1,
-    Point2d& p2) {
-
-  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
-  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
-
-  Mat m1 = img1->getMat();
-  Mat m2 = img2->getMat();
-  //translate coordinate system to camera plane
-  p1 = Point2d(feature1.pt.x - m1.size().width/2,
-               feature1.pt.y - m1.size().height/2);
-  p2 = Point2d(feature2.pt.x - m2.size().width/2,
-               feature2.pt.y - m2.size().height/2);
-
-  //scale to camera coordinates
-  p1 = scaleToCameraUnits(p1, m1);
-  p2 = scaleToCameraUnits(p2, m2);
-}
-
-\end{verbatim}
+\subsubsection{Camera Matrix for a "Look-at" Camera}
 \subsubsection{The Reconstruction Approach}
 
 \subsection{Refining the Reconstruction and Improving Performance}
@@ -677,7 +690,7 @@ Other additional features which would enlarge the range of applications of this 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the bibliography
 \addcontentsline{toc}{chapter}{Bibliography}
-%\bibliography{refs}
+\bibliography{refs}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the appendices
@@ -691,38 +704,6 @@ Other additional features which would enlarge the range of applications of this 
 \verbatiminput{SConstruct.txt}
 
 \chapter{Derivation of the Camera Matrix}
-\begin{figure}
-\begin{center}
-\tdplotsetmaincoords{70}{110}
-\begin{tikzpicture}[tdplot_main_coords]
-
-\draw[thick,->] (0,0,0) -- (3,0,0) node[anchor=north east]{$x$};
-\draw[thick,->] (0,0,0) -- (0,7,0) node[anchor=north west]{$z$};
-\draw[thick,->] (0,0,0) -- (0,0,3) node[anchor=south]{$y$};
-\node at (0,0,0) {\textbullet} ;
-\node at (0,-0.5,0) {O};
-\draw[thick] (0,0,0) -- (2, 7, 2.5) ;
-
-\draw[thick] (0,5.4,0) node{\textbullet} node[anchor=north west]{P} -- (2, 7, 2.5) node{\textbullet}  node[anchor=south west]{\bf{X}};
-
-\coordinate (Shift) at (0,3,0);
-\tdplotsetrotatedcoordsorigin{(Shift)}
-
-\draw[thick,tdplot_rotated_coords, ->] (0,0,0) -- (2,0,0) node[anchor=north east]{$x$};
-%\draw[thick,tdplot_rotated_coords, ->] (0,0,0) -- (0,1,0) node[anchor=north west]{$z$};
-\draw[thick,tdplot_rotated_coords, ->] (0,0,0) -- (0,0,1.25) node[anchor=south]{$y$};
-
-\node[tdplot_rotated_coords] at (0,0,0) {\textbullet} ;
-\node[tdplot_rotated_coords,anchor=south west] at (0,0,0) {Q};
-
-\draw[thick, tdplot_rotated_coords] (0,0,0) -- (-1,0, 0.5) node{\textbullet} node[anchor= south west]{\bf{y}};
-\draw[thick,tdplot_rotated_coords] (3.5, 0, 2) -- (3.5, 0, -1.5);
-\draw[thick,tdplot_rotated_coords] (3.5, 0, -1.5) -- (-3.5, 0, -1.5);
-\draw[thick,tdplot_rotated_coords] (-3.5, 0, -1.5) -- (-3.5, 0, 2);
-\draw[thick,tdplot_rotated_coords] (-3.5, 0, 2) -- (3.5, 0, 2);
-\end{tikzpicture}
-\end{center}
-\end{figure}
 In the case presented in Figure 3.2, the camera matrix is:
 \[ C_{0}=\left(\begin{array}{cccc}
 f & 0 & 0 & 0 \\
@@ -756,25 +737,28 @@ f & 0 & 0 & 0 \\
          x_{1} \\
          x_{2} \\
          x_{3}\\
+         1\\
         \end{bmatrix}$\\
      \linebreak
-Assume $f = 1 => \mathbf{C_{0}} = \left(\mathbf{I}|\mathbf{0} \right )$ \\ 
+Assume $f = 1 => \mathbf{C_{0}} = \left ( \begin{array} {c|c} \mathbf{I} & \mathbf{0} \end{array} \right )$ \\ 
 \linebreak
 
-$C_{0}$ is the camera matrix for a basic pinhole model. In the general case, however,  the camera is not located in the origin of the system. \\
-An easy way to map from a coordinate system to another is to perform a rotation and a translation. For a 3x3 rotation matrix \textbf{R} and a translation 3x1 matrix \textbf{t}:
+$C_{0}$ is the camera matrix for a basic pinhole model. In the general case, however,  the camera is not necessarily located in the origin of the system. \\
+An easy way to map from a coordinate system to another is to perform a rotation and a translation. For a 3x3 rotation matrix \textbf{R} and a translation vector \textbf{t}:
 
 \begin{center}
 	$\textbf{X} = \left ( \begin{array}{c|c} \mathbf{R} & \mathbf{0} \\ \hline  \mathbf{0} & 1 \end{array} \right ) \left ( \begin{array}{c|c} \mathbf{I} & \mathbf{t} \\ \hline \mathbf{0} & 1 \end{array} \right ) \textbf{X'}$ \\ 
 \vspace{20pt}
 	$\textbf{X} = \left ( \begin{array}{c|c} \mathbf{R} & \mathbf{t} \\ \hline \mathbf{0} & 1 \end{array} \right ) \textbf{X'}$
 \end{center}
+Here X denotes the location of a point in homogeneous camera coordinates and X' refers to the same location, but in homogeneous world coordinates.\\
+
 
 Using equation 3.1:
 \begin{center}
 	$\textbf{y} = \textbf{C} \textbf{X}$\\ 
 \vspace{20pt}
-	$\textbf{y} = \left ( \mathbf{I|0} \right ) $ 
+	$\textbf{y} = \left ( \begin{array} {c|c} \mathbf{I} & \mathbf{0} \end{array} \right ) $ 
 	$ \left ( \begin{array}{c|c} \mathbf{R} & \mathbf{t} \\ \hline \mathbf{0} & 1 \end{array} \right ) \textbf{X'}$ \\ 
 \vspace{20pt}	
    $\textbf{y} = \left ( \begin{array} {c|c} \mathbf{R} & \mathbf{t} \end{array} \right ) \textbf{X'}$
