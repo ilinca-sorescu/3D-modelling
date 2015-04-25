@@ -320,11 +320,8 @@ This methodology provides a sensible approach for implementing the proposed syst
 \section{Summary}
 This chapter provided a description of the intended outcome of this project and of the choices made prior to implementation in order to ensure its successful completion. It outlined the main requirements and explained how they were refined into a high-level structure of the system, explained the arguments which sustain the choice of several tools and programming languages and provided a description of a suitable implementation approach.
 \chapter{Implementation}
-This chapter outlines and provides explanation for some of the specific decisions involved in the design and implementation of the system described in this document. It begins by presenting the purpose of the different modules that the system consists of and the interactions between them and then proceeds to explain each of the modules in more detail. The last section presents a summary of the important points made in this chapter.
-\linebreak
-\linebreak
-\linebreak
-{\Large\textbf{Overview of the System}} \\
+
+The aim of this chapter is to acquaint the reader with the internal workings of the system by providing an in-depth description of the techniques used in order to add functionality and to improve the accuracy and overall performance of the system.\\
 \linebreak
 As mentioned in the previous chapter, the system is comprised of four major parts:
 \begin{itemize}
@@ -334,6 +331,7 @@ As mentioned in the previous chapter, the system is comprised of four major part
 \item \textbf{Evaluation Module}
 \end{itemize}
 Each of the following sections will focus on one of these modules. 
+
 
 \section{The Image Generator}
 As described in the previous section, this module produces a sequence of digital snapshots of a given three-dimensional object as seen from different locations in space. \\
@@ -350,7 +348,7 @@ Here are some additional advantages of using digital snapshots instead of photos
 The system can be extended to take real photographs as input simply by adding a calibration module.
 
 \subsection{Usage}
-This module is executed as a console application. The user must specify the following parameters:
+This module is executed as a console application. The user must specify the following arguments:
 \begin{itemize}
 \item \textbf{Filename} The name of (and relative path to) the input object. This must be an include file for \textbf{The Persistence of Vision Raytracer (POV-Ray)} and have the extension \textit{.inc}. The input file is assumed to meet the conditions outlined below:
 	\begin{enumerate}
@@ -362,8 +360,8 @@ This module is executed as a console application. The user must specify the foll
 	\end{enumerate}    
 \item \textbf{N} The number of snapshots to be taken. This can be any integer greater than 3.
 \item \textbf{R} The radius of the sphere considered. The following condition must be fulfilled by \textbf{R}: If you were to look towards the origin through air (using no distorting lenses) from any point at a distance \textbf{R} from the origin you would see the whole object. Here, the origin refers to the origin of the \textbf{POV-Ray} coordinate system and the distance is measured in \textbf{POV-Ray} units.  (for more details on the \textbf{POV-Ray} coordinate systems see \url{http://www.povray.org/documentation/view/3.6.1/15/})
+\item {folder} The destination folder.
 \end{itemize}
-
 
 \subsection{Language and Libraries}
 The image generator was implemented using Python. The main factor involved in this decision was the availability of a lightweight library for dealing with templates. I used \textbf{Mako} (\url{http://www.makotemplates.org/}) in order to create \textit{.pov} files from the template \textit{povTemplate.mako}: 
@@ -391,33 +389,113 @@ The \textit{.pov} files are rendered using \textbf{POV-Ray} to create the desire
 \section{The Point Cloud Constructor}
 Given a sequence of snapshots, the point cloud constructor finds correspondences between pairs of snapshots and uses these correspondences to determine the three-dimensional position of points located on the surface of the object. \\
 \linebreak
-As specified in the preparation chapter, a primitive prototype has been implemented early on in the development of the system. This section starts by presenting the basic principles and techniques used for implementing this basic prototype, then it proceeds to explain the measures which were taken to improve on these early results. For a description of the differences between the performance of the prototypes see section !! of the evaluation chapter.
+As specified in the preparation chapter, a primitive prototype has been implemented early on in the development of the system. This section starts by presenting the principles and techniques used for implementing this basic prototype, then it proceeds to explain the measures which were taken to improve on these early results.
 
 \subsection{A Basic Prototype}
-A prototype was assembled to integrate basic implementations for the main functional requirements which are part of the point cloud constructor. This prototype is characterized by its disregarding of precision or accuracy. It also attempts to create a reconstruction from only two input images. 
-
-\subsection{Overview of Computation}
-
+A prototype was assembled to integrate primitive implementations in order to fulfill the main functional requirements which are part of the point cloud constructor. This prototype is characterized by its disregarding of accuracy. It attempts to create a reconstruction from only two input images. 
 
 \subsection{Importing the Images}
+\begin{figure}
+\centerline{\includegraphics[scale=0.7]{figs/image.png}}
+\caption{The public methods of the \emph{Image} class.}
+\end{figure}
+For each of the snapshots used as input a correspondent instance of the \emph{Image} class is created. These instances contain the relevant information characteristic to a single view:
+\begin{itemize}
+\item The location (in world coordinates) of the center of the camera. This is information is provided by the image generator.
+\item The features and descriptors. The \emph{OpenCV} interfaces \emph{FeatureDetector} and \emph{DescriptorExtrator} define easy-to-use methods for dealing with these.
+\item The camera matrix
+\end{itemize}
 
 \subsubsection{The Camera Matrix}
 
-\subsubsection{The \emph{Image} Data Structure}
+\begin{verbatim}
+Matx34d Image::computeCameraMatrix(Point3d cameraPose) {
+  /*
+   * The camera matrix for a camera placed in (0,0,0) looking along the
+   * positive z-axis is:
+   *    1 0 0 0
+   *    0 1 0 0
+   *    0 0 1 0
+   * (see the camera pinhole model) [1].
+   * The camera matrix of a camera placed in
+   * (cameraPose.x, cameraPose.y, cameraPose.z) looking along the origin is:
+   * [R|T] where T is the translation vector and R the rotation matrix describing
+   * the camera's movement from [1].
+   */
 
-\subsection{Feature Matching}
+  Point3d L = Normalize(Point3d(-cameraPose.x, -cameraPose.y, -cameraPose.z));
+  Point3d u(0.0, 1.0, 0.0); //the up direction
+  Point3d s = Normalize(L.cross(u));
+  Point3d uprime = s.cross(L);
 
-\subsubsection{The Feature Matching Algorithm}
+  Matx33d R(s.x,      s.y,      s.z,
+            uprime.x, uprime.y, uprime.z,
+            -L.x,     -L.y,     -L.z);
+  Matx31d C(-cameraPose.x, -cameraPose.y, -cameraPose.z);
+  Matx31d t = R*C;
+  return Matx34d(R.val[0], R.val[1], R.val[2], t.val[0],
+                 R.val[3], R.val[4], R.val[5], t.val[1],
+                 R.val[6], R.val[7], R.val[8], t.val[2]);
+\end{verbatim}
 
-\subsubsection{The Data Structure}
+\subsection{The Feature Matcher}
 
 \subsection{Constructing a 3D model}
 \subsubsection{Triangulation}
+\begin{verbatim}
+  Matx43d A(p1.x*C1(2, 0)-C1(0, 0), p1.x*C1(2, 1)-C1(0, 1), p1.x*C1(2, 2)-C1(0, 2),
+            p1.y*C1(2, 0)-C1(1, 0), p1.y*C1(2, 1)-C1(1, 1), p1.y*C1(2, 2)-C1(1, 2),
+            p2.x*C2(2, 0)-C2(0, 0), p2.x*C2(2, 1)-C2(0, 1), p2.x*C2(2, 2)-C2(0, 2),
+            p2.y*C2(2, 0)-C2(1, 0), p2.y*C2(2, 1)-C2(1, 1), p2.y*C2(2, 2)-C2(1, 2));
+
+  Matx41d B(-p1.x*C1(2, 3)+C1(0, 3),
+            -p1.y*C1(2, 3)+C1(1, 3),
+            -p2.x*C2(2, 3)+C2(0, 3),
+            -p2.y*C2(2, 3)+C2(1, 3));
+
+  X = (A.t()*A).inv()*A.t()*B;
+\end{verbatim}
 
 \subsection{Multiple-View Reconstruction}
 The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views and to present a solution for this type of reconstruction.
 
 \subsubsection{Convert to World Coordinates}
+Assumption: the default height in Pov-ray is 1 (from -0.5 to 0.5)
+\begin{verbatim}
+Point2d FeatureMatcher::scaleToCameraUnits(Point2d p, Mat m) {
+  double ratio = m.size().width/m.size().height;
+  return Point2d(p.x/m.size().width*ratio,
+                 p.y/m.size().height);
+}
+
+//p1 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.queryIdx in img1.
+//p2 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.trainIdx in img2.
+void FeatureMatcher::cameraCoordinatesOfDMatch(
+    DMatch m,
+    shared_ptr<Image> img1,
+    shared_ptr<Image> img2,
+    Point2d& p1,
+    Point2d& p2) {
+
+  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
+  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
+
+  Mat m1 = img1->getMat();
+  Mat m2 = img2->getMat();
+  //translate coordinate system to camera plane
+  p1 = Point2d(feature1.pt.x - m1.size().width/2,
+               feature1.pt.y - m1.size().height/2);
+  p2 = Point2d(feature2.pt.x - m2.size().width/2,
+               feature2.pt.y - m2.size().height/2);
+
+  //scale to camera coordinates
+  p1 = scaleToCameraUnits(p1, m1);
+  p2 = scaleToCameraUnits(p2, m2);
+}
+
+\end{verbatim}
 \subsubsection{The Reconstruction Approach}
 
 \subsection{Refining the Reconstruction and Improving Performance}
@@ -450,10 +528,7 @@ Figure 3.1
 By virtue of being the most complex module of the system, the point cloud constructor soon began to span over 10 source files and to have several dependencies. As a result, readjusting the \emph{Makefile} for every new insertion became a burdensome task. The preferred alternative was to use an open-source software construction tool, \emph{Scons}\footnote{\url{http://www.scons.org/}}, which provides built-in automatic dependency analysis. The configuration script for \emph{Scons} was substantially easier to maintain. An example of such a configuration script can be found in Appendix B.
 
 \section{The Surface Reconstructor}
-The surface reconstruction module is based on its entirety on the \emph{PCL} library. 
-
-\section{The Model Visualizers}
-
+The surface reconstruction module is based in its entirety on the \emph{PCL} library. 
 
 \section{The Evaluation Module}
 This module consists of independent pieces of code which serve the purpose of evaluating the performance of the other modules. It is used in order to automatically plot the accuracy of the outcome under different conditions by systematically varying the input arguments of the point cloud constructor and repeatedly rerunning the latter in order to acquire data. 
@@ -461,7 +536,7 @@ This module consists of independent pieces of code which serve the purpose of ev
 \subsection{The Plot Maker}
 
 \section{Summary} 
-In this section the reader became  acquainted with the internal workings of the system.  
+In this section the reader became  acquainted with the internal workings of the system.
 
 
 \chapter{Evaluation}
@@ -473,9 +548,27 @@ In this section the reader became  acquainted with the internal workings of the 
 \section{Summary}
 
 \chapter{Conclusion}
+
+
 \section{Achievements}
+All of the objectives set in the project proposal had been achieved: a working system for deducing the shape of an object from a sequence of images has been designed, implemented and thoroughly evaluated and tested.\\
+\linebreak
+This is the largest project I have undertaken, and it allowed me to gain insight into the fascinating fields of computer vision and multiple-view geometry. 
+
 \section{Lessons Learned}
+This project enabled me to further my knowledge and skills and I have leaned many valuable lessons throughout. One of the most valuable ones has to do with the importance of planning for failure and allowing time to improve the results. The results from the early stages were rather daunting especially since understanding several research-level techniques and deciding which of the many approaches available in the literature to choose took longer than expected and, in some cases, ended up producing disappointing results. The project would not have been a success had I not chosen an incremental implementation technique and planned for time to go through multiple iterations.\\
+\linebreak
+Another important lesson I took away from this experience is that the libraries chosen to provide a core functionality do not always come through, or, at least,  not at the expected quality. Perhaps the best example of this is relying on PCL to automatically construct a surface from the point cloud. I spend vast amounts of time trying to improve its performance both by reducing the noise in the point cloud and trying different filtering, resampling and normal estimation methods provided by PCL but with no use. Had I known earlier that this would be the case, I might have chosen a semi-automatic approach similar to the one described in the \emph{Proteus}\cite{ProteusInteractiveSFM} project.
 \section{Future Work}
+Although the system is complete in the sense that it fulfills the initial objectives, future work can be done to improve the results and to turn this system into a deliverable piece of software. \\
+\linebreak
+Even though the accuracy of the representation was found to be adequate, the number of input images necessary to produce a satisfactory result is rather disappointing. Future work would focus on reducing the number of images to at most 20.\\ One way to do this is to create a dense representation by estimating the depth at every pixel of the image, rather than just at the points of interest. The resulting depth maps would then be assembled into a model.\\ Unfortunately the size of this task along with the high risk of failure which accompanies it made this approach unfeasible for a Part II project.\\
+\linebreak
+The project was designed to focus on exploring what can be achieved in the field of 3D reconstruction. It was not meant to produce a piece of  ready to be delivered to a client.\\ 
+Future work may include extending this system into a practical application. 
+The first step to take in this direction is to create support for the use of real images. The evaluation of such a system would compare the outcome with that of an existing system for 3D reconstruction whose capabilities had been analyzed and proven to be satisfactory.\\ 
+Other additional features which would enlarge the range of applications of this system include adding texture and shading to the model, eliminating the need to specify the location of the camera, and creating an interface for facilitating the interaction with the user.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the bibliography
