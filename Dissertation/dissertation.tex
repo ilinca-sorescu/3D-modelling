@@ -465,49 +465,14 @@ More often than not, the 3D locations are not specified in a camera-centric coor
 \begin{equation}
 \mathbf{y = CX'},\hspace{20pt} \mathbf{C} = \left ( \begin{array} {c|c} \mathbf{R} & \mathbf{t} \end{array} \right )\\
 \end{equation} where $R$ is a 3x3 rotation matrix and $t$ is a translation column vector. For the derivation of equations 3.1 and 3.2 from basic principles of the pinhole camera model see Appendix C.\\
-\linebreak
 
-\subsubsection{Locate Features in Image Coordinates}
-Assumption: the default height in Pov-ray is 1 (from -0.5 to 0.5)
-\begin{verbatim}
-Point2d FeatureMatcher::scaleToCameraUnits(Point2d p, Mat m) {
-  double ratio = m.size().width/m.size().height;
-  return Point2d(p.x/m.size().width*ratio,
-                 p.y/m.size().height);
-}
+\subsubsection{Using OpenCV to Find the Camera Matrix}
+\cite{baggio2012mastering}
 
-//p1 - the 2D point (in camera coordinates) corresponding to the location of
-//     the feature with id m.queryIdx in img1.
-//p2 - the 2D point (in camera coordinates) corresponding to the location of
-//     the feature with id m.trainIdx in img2.
-void FeatureMatcher::cameraCoordinatesOfDMatch(
-    DMatch m,
-    shared_ptr<Image> img1,
-    shared_ptr<Image> img2,
-    Point2d& p1,
-    Point2d& p2) {
+\subsection{Triangulation}
+The term \emph{triangulation} denotes the process of determining the third vertex of a triangle by means of intersecting two of the lines which form the edges of the triangle.\\
+This section follows the 
 
-  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
-  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
-
-  Mat m1 = img1->getMat();
-  Mat m2 = img2->getMat();
-  //translate coordinate system to camera plane
-  p1 = Point2d(feature1.pt.x - m1.size().width/2,
-               feature1.pt.y - m1.size().height/2);
-  p2 = Point2d(feature2.pt.x - m2.size().width/2,
-               feature2.pt.y - m2.size().height/2);
-
-  //scale to camera coordinates
-  p1 = scaleToCameraUnits(p1, m1);
-  p2 = scaleToCameraUnits(p2, m2);
-}
-
-\end{verbatim}
-
-\subsection{From views to 3D points}
-This section introduces the process of determining the location in 3-space of points on the surface of the object based solely on the information gathered from the two views.\\
-\linebreak
 Given $\textbf{p1}=(u, v)$ and $\textbf{p2}=(u', v')$, two image coordinates and the camera matrices of their corresponding views, \textbf{C1} and \textbf{C2} respectively, We want to find the 3D point \textbf{X} that corresponds to both image points.\\
 \linebreak
 Considering the homogeneous form of \textbf{p1} and using equation 3.1: \\
@@ -558,11 +523,56 @@ z \\
 \end{center}
 
 
-  X = (A.t()*A).inv()*A.t()*B;
+\begin{center}
+$\mathbf{X} = (\mathbf{A}^{T} \mathbf{A})^{-1} \mathbf{A}^{T} \mathbf{B}$
+\end{center}
+
+\subsection{Locating Features in Image Coordinates}
+The derivations in the previous section required having prior knowledge of the 
+Assumption: the default height in Pov-ray is 1 (from -0.5 to 0.5)
+\begin{verbatim}
+Point2d FeatureMatcher::scaleToCameraUnits(Point2d p, Mat m) {
+  double ratio = m.size().width/m.size().height;
+  return Point2d(p.x/m.size().width*ratio,
+                 p.y/m.size().height);
+}
+
+//p1 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.queryIdx in img1.
+//p2 - the 2D point (in camera coordinates) corresponding to the location of
+//     the feature with id m.trainIdx in img2.
+void FeatureMatcher::cameraCoordinatesOfDMatch(
+    DMatch m,
+    shared_ptr<Image> img1,
+    shared_ptr<Image> img2,
+    Point2d& p1,
+    Point2d& p2) {
+
+  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
+  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
+
+  Mat m1 = img1->getMat();
+  Mat m2 = img2->getMat();
+  //translate coordinate system to camera plane
+  p1 = Point2d(feature1.pt.x - m1.size().width/2,
+               feature1.pt.y - m1.size().height/2);
+  p2 = Point2d(feature2.pt.x - m2.size().width/2,
+               feature2.pt.y - m2.size().height/2);
+
+  //scale to camera coordinates
+  p1 = scaleToCameraUnits(p1, m1);
+  p2 = scaleToCameraUnits(p2, m2);
+}
+
+\end{verbatim}
+
+
 
 \subsection{Multiple-View Reconstruction}
 The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views and to present a solution for this type of reconstruction.
 \subsubsection{Camera Matrix for a "Look-at" Camera}
+
+
 \subsubsection{The Reconstruction Approach}
 
 \subsection{Refining the Reconstruction and Improving Performance}

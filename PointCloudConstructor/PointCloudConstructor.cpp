@@ -495,7 +495,7 @@ int main(int argc, char *argv[]) {
     NumberOfPics = stoi(argv[2]);
     if(NumberOfPics < 4)
       throw new Exception();
-   // if(argc > 3)
+    if(argc > 3)
       configFile=argv[3];
   } catch(...){
     cout<<"The second argument represents the maximum number "<<
@@ -504,7 +504,7 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  //if(argc > 3)
+  if(argc > 3)
     getParameterConfiguration(configFile);
 
   cout
