@@ -15,9 +15,12 @@
 \usepackage{changepage}
 \usepackage{tikz}
 \usepackage{tikz-3dplot}
+\usepackage{eqnarray}
 \usepackage{amsmath}
 \usepackage{systeme}
 \usepackage{cases}
+\usepackage{amsthm}
+
 % \usepackage{wrapfig}
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
@@ -143,9 +146,9 @@ For the reasons outlined above, exploring a cheaper alternative to constructing 
 In the last section I argued that the world would benefit from a more widespread usage of 3D reconstruction. The purpose of this section is to explain why, in spite of all of its advantages, 3D reconstruction still has a restricted range of applicability today. \\
 \linebreak
 Computer vision, the scientific discipline concerned with making computers understand the visual world of humans, is still in its infancy, according to many experts in this field. \\
-The main reason for this lack of expertise is that vision is an \textit{inverse problem}: we are seeking to create a mapping from a two dimensional space to a three dimensional one. Clearly, we are given insufficient information to fully specify the solution \cite{Szeliski+2011}.\\
+The main reason for this lack of expertise is that vision is an \textit{inverse problem}: we are seeking to create a mapping from a two dimensional space to a three dimensional one. Clearly, we are given insufficient information to fully specify the solution \cite[p.~3]{Szeliski+2011}.\\
 \linebreak
-Like most inverse problems, 3D reconstruction is an ill-posed problem because it disobeys the last two conditions of \textit{Hadamard's criteria} \cite{+2008}:
+Like most inverse problems, 3D reconstruction is an ill-posed problem because it disobeys the last two conditions of \textit{Hadamard's criteria} \cite[p.~35]{+2008}:
 \begin{itemize}
 \item There is a solution.
 \item The solution is unique.
@@ -193,6 +196,7 @@ This section presents a broad overview of the system and then proceeds to identi
 \subsection{Overview of the Project}
 In order to achieve the purposes of this project, a working system which constructs a three-dimensional model based on a sequence of images must be put together. \\
 After analyzing the input images, the system aims to build a set of points which are considered to be lying on the surface of the input object. These points are then connected together in order to construct a polygon mesh. The newly-constructed surface is then exported as a \textbf{PLY} file.\\
+
 \subsection{Functional Requirements}
 \begin{samepage}
 Table 2.1 summarizes the goals of this project. The information displayed in this table is in conformity with what was presented in the project proposal, but it provides a lower-level overview of the functional components of the system.\\
@@ -292,7 +296,7 @@ A core task of the proposed system is solving the \emph{stereo correspondence pr
 
 \subsubsection{Qhull}
 One of the metrics used in the evaluation module in order to estimate the accuracy of the result is the volume of the convex hull of the resulting point cloud (see the chapter 4).\\
-Although constructing a tool for computing the convex hull of a set of 3D points is not a particularly difficult task (my implementation based on Franco Preparata and Ian Shamos's book on computational geometry\cite{Preparata} can be found at \url{https://github.com/ilinca-sorescu/convex-hull}), a more suitable alternative for evaluating the point cloud constructor is to use \emph{qhull}\footnote{\url{http://www.qhull.org/}} instead because it handles the roundoff errors which arise from doing floating point arithmetic and it provides various options for dealing with precision errors in estimating the volume of the resulting convex hull. 
+Although constructing a tool for computing the convex hull of a set of 3D points is not a particularly difficult task (my implementation based on Franco Preparata and Ian Shamos's book on computational geometry{Preparata} can be found at \url{https://github.com/ilinca-sorescu/convex-hull}), a more suitable alternative for evaluating the point cloud constructor is to use \emph{qhull}\footnote{\url{http://www.qhull.org/}} instead because it handles the roundoff errors which arise from doing floating point arithmetic and it provides various options for dealing with precision errors in estimating the volume of the resulting convex hull. 
 
 \subsection{The programming environment}
 The development was carried out on my personal computer running Arch Linux(rolling release).\\
@@ -399,7 +403,7 @@ As specified in the preparation chapter, a primitive prototype has been implemen
 \subsection{A Basic Prototype}
 A prototype was assembled to integrate primitive implementations in order to fulfill the main functional requirements which are part of the point cloud constructor. This prototype is characterized by its disregarding of accuracy. It attempts to create a reconstruction from only two input images. 
 
-\subsection{Importing the Images}
+\subsubsection{Importing the Images}
 \begin{figure}
 \centerline{\includegraphics[scale=0.7]{figs/image.png}}
 \caption{The public methods of the \emph{Image} class.}
@@ -448,32 +452,34 @@ In computer vision a \emph{camera} is defined as a mapping from a 3D space (the 
 \end{figure}
 In this model, the camera is placed at the origin, facing the positive z-axis (also referred to as the principal axis). The image plane is at a distance \emph{f} in front of the camera, perpendicular to the principal axis. This camera maps points from the object space to the intersection between the image plane and the line connecting the origin to that point. This set-up is depicted in Figure 3.2.\\
 \linebreak
-The relation between 3-space and 2-space, as defined by the pinhole camera, can be easily modeled using the 3X4 camera matrix \textbf{$C_{0}$}: 
+The relation between 3-space and 2-space, as defined by the pinhole camera, can be easily modeled using the 3X4 camera matrix $\mathbf{C_{0}}$: 
 \begin{equation}
 \mathbf{y = C_{0}X}
 \end{equation}
 In this equation \textbf{X} and \textbf{y} are the homogeneous coordinates of the point in object space and its correspondent in the image plane respectively.\\
-For the basic pinhole camera model, the camera matrix $C_{0}$ is:
-\[ C_{0}=\left(\begin{array}{cccc}
+For the basic pinhole camera model, the camera matrix $\mathbf{C_{0}}$ is:
+\[ \mathbf{C_{0}=\left(\begin{array}{cccc}
 f & 0 & 0 & 0 \\
 0 & f & 0 & 0 \\
-0 & 0 & 1 & 0\end{array} \right)\]
+0 & 0 & 1 & 0\end{array} \right)}\] 
 Assuming that $f = 1$, $\mathbf{C_{0}} = \left ( \begin{array} {c|c} \mathbf{I} & \mathbf{0} \end{array} \right )$
 \\
 \linebreak
 More often than not, the 3D locations are not specified in a camera-centric coordinate system but in an arbitrary one, in world coordinates. A more general form of equation (3.1) relates $y$ to $X'$, the correspondent in homogeneous world coordinates of point $X$:
 \begin{equation}
 \mathbf{y = CX'},\hspace{20pt} \mathbf{C} = \left ( \begin{array} {c|c} \mathbf{R} & \mathbf{t} \end{array} \right )\\
-\end{equation} where $R$ is a 3x3 rotation matrix and $t$ is a translation column vector. For the derivation of equations 3.1 and 3.2 from basic principles of the pinhole camera model see Appendix C.\\
+\end{equation} where $\mathbf{R}$ is a 3x3 rotation matrix and $\mathbf{t}$ is a translation column vector. For the derivation of equations 3.1 and 3.2 from basic principles of the pinhole camera model see Appendix C.\\
 
 \subsubsection{Using OpenCV to Find the Camera Matrix}
-\cite{baggio2012mastering}
+\cite[p.~129]{baggio2012mastering}
 
-\subsection{Triangulation}
+\subsubsection{Feature Matching}
+
+\subsubsection{Triangulation}
 The term \emph{triangulation} denotes the process of determining the third vertex of a triangle by means of intersecting two of the lines which form the edges of the triangle.\\
-This section follows the 
+This section follows the process of intersecting the rays back-projected from a pair of matching image coordinates, $p1$ and $p2$, to determine the location of the 3D point which is depicted in both of these image locations.\\
 
-Given $\textbf{p1}=(u, v)$ and $\textbf{p2}=(u', v')$, two image coordinates and the camera matrices of their corresponding views, \textbf{C1} and \textbf{C2} respectively, We want to find the 3D point \textbf{X} that corresponds to both image points.\\
+Given $\textbf{p1}=(u, v)$ and $\textbf{p2}=(u', v')$, two image coordinates and the camera matricezzs of their corresponding views, \textbf{C1} and \textbf{C2} respectively, We want to find the 3D point \textbf{X} that corresponds to both image points.\\
 \linebreak
 Considering the homogeneous form of \textbf{p1} and using equation 3.1: \\
 \begin{center}
@@ -527,7 +533,7 @@ z \\
 $\mathbf{X} = (\mathbf{A}^{T} \mathbf{A})^{-1} \mathbf{A}^{T} \mathbf{B}$
 \end{center}
 
-\subsection{Locating Features in Image Coordinates}
+\subsubsection{Locating Features in Image Coordinates}
 The derivations in the previous section required having prior knowledge of the 
 Assumption: the default height in Pov-ray is 1 (from -0.5 to 0.5)
 \begin{verbatim}
@@ -578,8 +584,7 @@ The techniques described so far assumed the use of only two input images. This s
 \subsection{Refining the Reconstruction and Improving Performance}
 As mentioned right from the beginning of this document, the proposed system was expected to be highly error-prone. Consequently, a software engineering paradigm which allowed for repeatedly adding improvements to the initial design has been employed. This section aims to analyze these improvements.
 \subsubsection{Epipolar Filtering}
-Unlike the following improvements described in this section, the epipolar filtering is critical to an accurate reconstruction. The reason why it is not considered to be part of the basic prototype described above, however, is that epipolar filtering is not essential to the integration of the main components of this module. In contrast, it adds a great deal complexity to what was designed to be a simple first iteration in the incremental development model.\\
-Epipolar geometry is the geometry of two views. It aims to describe, for any position in the first view, the locality in the second view where its corresponding position might lay.\\
+Unlike the other improvements described in this section, the epipolar filtering is critical to an accurate reconstruction. The reason why it is not considered to be part of the basic prototype described above is that epipolar filtering is not essential to the integration of the main components of this module. In contrast, it adds a great deal complexity to what was designed to be a simple first iteration in the incremental development model.\\
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.35]{figs/before_epi.png} \\
@@ -587,23 +592,54 @@ Epipolar geometry is the geometry of two views. It aims to describe, for any pos
 \includegraphics[scale=0.35]{figs/after_epi.png}	
 \caption{Before and after epipolar filtering}
 \end{center}
-\end{figure}
-Epipolar filtering is used in this project to detect which of the presumably matching pairs returned by the feature matcher make geometric sense. Figure 3.3 seeks to give the reader an impression of the vast percentage of erroneous correspondences identified by the feature matcher.\\
+\end{figure}\\
+Epipolar geometry is the geometry of two views. It aims to describe, for any position in the first view, the region in the second view where its corresponding position might reside. In this project, this knowledge is used in order to detect which of the presumably matching pairs returned by the feature matcher make geometric sense. Figure 3.3 seeks to give the reader an impression of the vast percentage of erroneous correspondences identified by the feature matcher.\\
 \newline
-As depicted in Figure 3.4, each point in one view corresponds to a line in a second view. This means that a location $r$ in the right view is considered to be a correct match for the point $x_{L}$ for any $r$ on the red line. Since it can only ever make sense for $x_{L}$ to get coupled with a unique $r$, this proves that epipolar filtering does not identify all of the erroneous matches. Instead, it reduces the state of possible solutions from a 2 dimensional one (the entire view) to just one dimension (a specific line).\\
+As depicted in Figure 3.4, each point in one view corresponds to a line in the second view. This means that a location $r$ in the right view is considered to be a correct match for the point $x_{L}$ for any $r$ on the epipolar line. Since it can only ever make sense for $x_{L}$ to get coupled with a unique $r$, this proves that epipolar filtering does not identify all of the erroneous matches. Instead, it reduces the state of possible solutions from a 2 dimensional one (the entire view) to just one dimension (the epipolar line). Figure 3.4 portrays the remaining uncertainty by showing the multitude of points in the object space ($X$, $X_{1}$, $X_{2}$ etc.) which will be projected onto the same point in the left view. The epipolar line is formed by projecting this infinite set of points onto the right view.\\
 \linebreak
-What follows is a description of some of the key notions pertaining to epipolar geometry \cite[ch.9]{Hartley+2003}:
+What follows is a description of some of the key notions pertaining to epipolar geometry \cite[chapter~9]{Hartley+2003}:
 \begin{itemize}
-\item {The epipole}
-\item {The epipolar line}
+\item {\bf{The epipolar plane:}} The rays back-projected from the two corresponding image locations intersect at $X$, the location in the object space whose image is created at $x_{L}$ and $x_{R}$. Therefore, the two rays are coplanar, forming the epipolar plane.  
+\item {\bf{The baseline:}} the line joining the camera centers, $O_{L}$ and $O_{R}$.
+\item {\bf{The epipole:}} the location in one view which corresponds to the camera center of the other view. It is located at the intersection between the baseline and the image plane. 
+\item {\bf{The epipolar line:}} the intersection between the epipolar and image planes. 
 \end{itemize}
 
 \begin{figure}
-\begin{center}
+\begin{center}	
 \includegraphics[scale=0.7]{figs/Epipolar_geometry.png}
-\caption{Epipolar geometry: this figure shows in red the possible correspondences in the right view of point $x_{L}$ in the left view. $O_{L}$ and $O_{R}$ are the locations of the two cameras; $e_{L}$ and $e_{R}$ are the two epipoles.}
+\caption{Epipolar geometry: this figure illustrates (in red) the epipolar line, or the space of possible correspondences in the right view of point $x_{L}$ in the left view. $O_{L}$ and $O_{R}$ are the locations of the two cameras; $e_{L}$ and $e_{R}$ are the two epipoles. The epipolar plane is featured in green and the two image planes in light blue.}
 \end{center}
 \end{figure}
+ 
+The following equations illustrate the method used to verify whether two 2D locations, $x_{L}$ and $x_{R}$, could be depictions of the same 3D point. The method assumes prior knowledge of the camera centers, $O_{L}$ and $O_{R}$, along with their corresponding camera matrices, $C_{L}$ and $C_{R}$:\\
+\linebreak
+\begin{adjustwidth}{0.7cm}{}
+The camera matrix relates any point in the object space to a point in the view. By definition the epipole is the image of the camera center of the other view. Therefore, the following equation holds:
+\begin{equation}
+\mathbf{e_{R} = C_{R} O_{L}}
+\end{equation}
+\linebreak
+Equation 3.4 defines another point which resides on the epipolar line. In addition to $e_{r}$, this point completely determines the space of points in the second view which might correspond to $x_{L}$:
+\begin{equation}
+\mathbf{p_{R} = C_{R} C_{L}^{\dagger} x_{L}}
+\end{equation}
+Here, $C_{L}^{\dagger}$ refers to the pseudo-inverse of $C_{L}$. This obeys the equation $C_{L} C_{L}^{\dagger} C_{L} = C_{L}$. \emph{OpenCV} provides the function \emph{invert} which computes the pseudo-inverse of a non-quadratic matrix using \emph{singular value decomposition}\footnote{\url{http://en.wikipedia.org/wiki/Singular_value_decomposition}}. \\
+\linebreak
+To show that $p_{R}$ is located on the epipolar line, it suffices to show that $X' = C_{L}^{\dagger} x_{L}$ belongs to the ray back-projected from $x_{L}$:\\
+
+\begin{proof} 
+\begin{align}
+C_{L}X' &= C_{L} (C_{L}^{\dagger} x_{L})\\
+		&= C_{L} C_{L}^{\dagger} (C_{L} X)\\ 
+		&= C_{L} X\\
+		&= x_{L} \qedhere
+ \end{align}
+\end{proof}
+
+
+$x_{R}$ can match $x_{L}$ only if it belongs to the line joining $e_{R}$ and $p_{R}$. To account for the errors introduced by floating point computations, the epipolar test checks whether $x_{R}$ is at a distance of at most \emph{tolerance} away from the epipolar line. The value of \emph{tolerance} can be specified by the user, and it has a default value of 0.0001.   
+\end{adjustwidth}
 
 \subsubsection{Filter by Reprojection Error}
 after triangulation reproject back into the views and compute displacement to initial location of the feature
@@ -668,10 +704,9 @@ In this section the reader became  acquainted with the internal workings of the 
 
 \chapter{Evaluation}
 \section{General Results}
-\section{Unit Testing}
 \section{Accuracy of Reconstruction}
-\section{Error-resilience}
 \section{Performance Analysis}
+\section{Unit Testing}
 \section{Summary}
 
 \chapter{Conclusion}

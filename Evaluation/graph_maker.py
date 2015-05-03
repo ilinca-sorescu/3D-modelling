@@ -104,9 +104,26 @@ def runQHull(configFilename):
 class ErrorGatheringPlotData(Exception):
     pass
 
-#def getNumberOfPointsInBounds(configFilename):
-#    f = open(configFilename + "_cloud", "r")
-#    lines = f.readlines()
+def getInBoundsNum(configFilename):
+    (inNum, outNum) = getInAndOutBoundsNum(configFilename)
+    return inNum
+
+def getInBoundsPercentage(configFilename):
+    (inNum, outNum) = getInAndOutBoundsNum(configFilename)
+    return inNum*100/(inNum + outNum)
+
+def getInAndOutBoundsNum(configFilename):
+    f = open(configFilename + "_cloud", "r")
+    lines = f.readlines()
+    for l in lines:
+        v = l.split(' ')
+        if pointInBounds(l[0], l[1], l[2]):
+            ++num
+    return (num, len(lines) - num)
+
+def pointInBounds(x, y, z):
+    print(x, y, z)
+    return True
 
 def getQhullParameter(configFilename, parameterName):
     if not os.path.isfile(configFilename + "_qhullDict"):
@@ -162,7 +179,7 @@ def plot(points, label, fit=False):
     ys = [p['y'] for p in points]
     #pl.plot(xs, ys)
 
-    print([p['x'] for p in points])
+    #print([p['x'] for p in points])
     allXs = sorted(set([p['x'] for p in points]))
     xs = []
     ys = []
@@ -171,18 +188,14 @@ def plot(points, label, fit=False):
     for x in allXs:
         valsX = sorted(filter(lambda p : p['x'] == x, points), key = lambda p : p['y'])
         yValsX = [float(v['y']) for v in valsX]
-        if x == 2500:
-            print("!!!!!!!!!!!!1")
-            print(yValsX)
-            yValsX.remove(yValsX[-1])
         if len(yValsX) < 9:
             xs.append(x)
             ys.append(np.mean(yValsX))
             lower.append(0)
             upper.append(0)
             continue
-        print(yValsX)
-        print("For %s len is %s" % (x, len(yValsX)))
+        #print(yValsX)
+        #print("For %s len is %s" % (x, len(yValsX)))
         mean = np.mean(yValsX)
         [l, u] = bootstrap(yValsX, 3000, 0.05)
         xs.append(x)
@@ -201,8 +214,8 @@ def plot(points, label, fit=False):
     if fit:
         z = np.polyfit(xs, ys, 3)
         f = np.poly1d(z)
-        print(z)
-        print(f)
+        #print(z)
+        #print(f)
         fitx = np.linspace(xs[0], xs[-1], 50)
         fity = f(fitx)
         label="(" + str(round(f[0],1))+"x+"+str(round(f[1],1))+")x"
@@ -223,7 +236,7 @@ for i in range(6, 16):
                 'inputFolder': lambda s: s.split("/")[-1] == "Rubic" + str(i),
              }
     relevantConfigs += filterConfigs(specifiedFields, allConfigFiles)
-print(len(relevantConfigs))
+#print(len(relevantConfigs))
 #plot(pointsToPlot('numPics', getQhullVolume, relevantConfigs), "Total Volume")
 #plot(pointsToPlot('numPics', getQhullTotalFacetArea, relevantConfigs), "Total Facet Area")
 #plot(pointsToPlot('numPics', getQhullNumVertices, relevantConfigs), "Number of vertices")
