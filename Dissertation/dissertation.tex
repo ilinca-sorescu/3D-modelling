@@ -38,8 +38,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Title
 
-
-
 \pagestyle{empty}
 
 %\rightline{\LARGE \textbf{}}
@@ -477,11 +475,28 @@ More often than not, the 3D locations are not specified in a camera-centric coor
 
 \subsubsection{Triangulation}
 The term \emph{triangulation} denotes the process of determining the third vertex of a triangle by means of intersecting two of the lines which form the edges of the triangle.\\
-This section follows the process of intersecting the rays back-projected from a pair of matching image coordinates, $p1$ and $p2$, to determine the location of the 3D point which is depicted in both of these image locations.\\
-
-Given $\textbf{p1}=(u, v)$ and $\textbf{p2}=(u', v')$, two image coordinates and the camera matricezzs of their corresponding views, \textbf{C1} and \textbf{C2} respectively, We want to find the 3D point \textbf{X} that corresponds to both image points.\\
+This section follows the process of intersecting the rays back-projected from a pair of matching image coordinates, $p1=(u, v)$ and $p2=(u', v')$, in order to determine the location of the 3D point $X$ which is depicted in both of these image locations.\\
 \linebreak
-Considering the homogeneous form of \textbf{p1} and using equation 3.1: \\
+The \textbf{Linear-LS}\cite[p.~8]{Hartley96triangulation} method for solving the triangulation problem boils down to solving the system of equations:
+\begin{equation}
+\mathbf{AX} = \mathbf{B} 
+\end{equation}
+where \textbf{A} and \textbf{B} are defined as follows:
+\begin{verbatim}
+  Matx43d A(p1.x*C1(2, 0)-C1(0, 0), p1.x*C1(2, 1)-C1(0, 1), p1.x*C1(2, 2)-C1(0, 2),
+            p1.y*C1(2, 0)-C1(1, 0), p1.y*C1(2, 1)-C1(1, 1), p1.y*C1(2, 2)-C1(1, 2),
+            p2.x*C2(2, 0)-C2(0, 0), p2.x*C2(2, 1)-C2(0, 1), p2.x*C2(2, 2)-C2(0, 2),
+            p2.y*C2(2, 0)-C2(1, 0), p2.y*C2(2, 1)-C2(1, 1), p2.y*C2(2, 2)-C2(1, 2));
+
+  Matx41d B(-p1.x*C1(2, 3)+C1(0, 3),
+            -p1.y*C1(2, 3)+C1(1, 3),
+            -p2.x*C2(2, 3)+C2(0, 3),
+            -p2.y*C2(2, 3)+C2(1, 3));
+\end{verbatim}
+Here, \textbf{C1} and \textbf{C2} are the camera matrices of the two views considered.
+
+\begin{proof}
+Using equation 3.2 and the homogeneous form of $p1$: \\
 \begin{center}
 $\begin{bmatrix}
 	uw \\
@@ -489,17 +504,16 @@ $\begin{bmatrix}
 	w \\
   \end{bmatrix} = \textbf{C}_{1}\textbf{X}$
 \end{center}
-
-By splitting up the equation using the rows $\textbf{c}_{i}^T$ of $\textbf{C}_{1}$ :
-
+This is equivalent to:
 \begin{center}
 $\systeme*{
 uw = \textbf{c}_{1}^T \textbf{X},
 vw = \textbf{c}_{2}^T \textbf{X},
 w = \textbf{c}_{3}^T  \textbf{X}}$
 \end{center}
+where  $\mathbf{c}_{i}^T$ of $\mathbf{C}_{1}$ is the $i^{th}$ row of $\mathbf{C_{1}}$. \\
 
-By replacing w in all the equations we obtain the system:
+By substituting w from the last equation the system becomes:
 \begin{center}
 $\systeme*{
 u * \textbf{c}_{3}^T \textbf{X} = \textbf{c}_{1}^T \textbf{X},
@@ -512,27 +526,31 @@ $ => \begin{cases}
 \end{cases}$
 \end{center}
 
-We have obtain two equations for \textbf{X} out of \textbf{p1} and \textbf{C1}. Similar we can obtain another two from \textbf{p2} and \textbf{C2}. And thus form a equation system of the form:
-\begin{center}
-	\textbf{A}\textbf{X} = \textbf{0} 
-\end{center}
+Equivalent equations can be obtained by using \textbf{p2} and \textbf{C2}. Together they form the following system of equations:
+\begin{align}
+	\textbf{A'}\textbf{X} &= \textbf{0}\\ 
+\textbf{A'} &= \begin{bmatrix}
+u * \mathbf{c}_{3}^T - \mathbf{c}_{1}^T\\
+v * \mathbf{c}_{3}^T - \mathbf{c}_{2}^T\\
+u' * \mathbf{c'}_{3}^T - \mathbf{c'}_{1}^T\\
+v' * \mathbf{c'}_{3}^T - \mathbf{c'}_{2}^T
+\end{bmatrix}
+\end{align}
 
-By forcing \textbf{X} to be of the form 
+After forcing \textbf{X} to be of the form 
 $\begin{bmatrix}
 x \\
 y \\
 z \\
 1
-\end{bmatrix}$ we arrive at a linear equation system of the form:
+\end{bmatrix}$ and then eliminating the now superfluous column of \textbf{A}, the system of equations becomes:
 \begin{center}
 	\textbf{A}\textbf{X} = \textbf{B}
-\end{center}
-
-
-\begin{center}
-$\mathbf{X} = (\mathbf{A}^{T} \mathbf{A})^{-1} \mathbf{A}^{T} \mathbf{B}$
-\end{center}
-
+\end{center} for the \textbf{A} and \textbf{B} defined above.
+\end{proof}
+Since \textbf{A} is not invertible its pseudo-inverse must be computed in order to determine \textbf{X}. The function \emph{invert} from \emph{OpenCV} provides an easy way to deal with computing the pseudo-inverse of non-quadratic matrices by using the \emph{singular value decomposition}\cite[p.~82]{Suli+2003} factorization method.\\
+\linebreak
+Although suitable for a basic prototype, the solution for the triangulation problem described in this section is generally not recommended for constructing a projective reconstruction. Its main shortcoming comes from its inability to deal with noise: a central assumption made by this method is that the two rays will intersect. Albeit this should be the case in ideal conditions, it is not generally true of two lines laying in 3-space. Since any amount of noise could cause the two rays to meet at infinity, a more error-resilient approach should be adopted. Such a method will be presented later in this chapter.
 \subsubsection{Locating Features in Image Coordinates}
 The derivations in the previous section required having prior knowledge of the 
 Assumption: the default height in Pov-ray is 1 (from -0.5 to 0.5)
@@ -624,7 +642,7 @@ Equation 3.4 defines another point which resides on the epipolar line. In additi
 \begin{equation}
 \mathbf{p_{R} = C_{R} C_{L}^{\dagger} x_{L}}
 \end{equation}
-Here, $C_{L}^{\dagger}$ refers to the pseudo-inverse of $C_{L}$. This obeys the equation $C_{L} C_{L}^{\dagger} C_{L} = C_{L}$. \emph{OpenCV} provides the function \emph{invert} which computes the pseudo-inverse of a non-quadratic matrix using \emph{singular value decomposition}\footnote{\url{http://en.wikipedia.org/wiki/Singular_value_decomposition}}. \\
+Here, $C_{L}^{\dagger}$ refers to the pseudo-inverse of $C_{L}$. This obeys the equation $C_{L} C_{L}^{\dagger} C_{L} = C_{L}$. 
 \linebreak
 To show that $p_{R}$ is located on the epipolar line, it suffices to show that $X' = C_{L}^{\dagger} x_{L}$ belongs to the ray back-projected from $x_{L}$:\\
 
