@@ -15,7 +15,7 @@
 #include <mutex>
 
 #define white 16777215
-#define epsilon 0.01
+#define epsilon 0.0001
 
 using namespace std;
 using namespace cv;
@@ -77,7 +77,7 @@ PointCloudConstructor::PointCloudConstructor(
   cloud = StatisticalRemovalFilter(cloud).getFilteredCloud();
   cout<<cloud->points.size()<<" points after statistical removal."<<endl;
 
-  normalizeCloudValues();
+ // normalizeCloudValues();
 }
 
 bool comparePoints(Point3d p1, Point3d p2) {
