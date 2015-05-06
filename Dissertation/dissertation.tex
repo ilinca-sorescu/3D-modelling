@@ -258,7 +258,7 @@ Figure 2.2 reveals the high degree of interdependence between the different unit
 \section{Choice of Tools}
 
 \subsection{Programming Languages}
-The main programming language used throughout this project is C++. This choice is motivated by the need to take full advantage of computer vision and computational geometry open-source libraries such as \emph{OpenCV}, \emph{PCL} or \emph{GCAL} which are all written in C++. Another advantage of using C++ for implementing a system which deals with complex computations on images is its characteristic execution speed.\\
+The main programming language used throughout this project is C++. This choice is motivated by the need to take full advantage of computer vision and computational geometry open-source l7ibraries such as \emph{OpenCV}, \emph{PCL} or \emph{GCAL} which are all written in C++. Another advantage of using C++ for implementing a system which deals with complex computations on images is its characteristic execution speed.\\
 I only used C/C++ before in order to implement small practice programs and for implementing the ticks in part IB. Consequently, I needed to adjust to writing C++ programs in an object-oriented fashion and to using features newly introduced in C++11 or in C++14.\\
 \linebreak
 Python was chosen for implementing the picture generator and parts of the evaluation module. The main reasons for doing so are library availability and the convenience with which one can write small scripts for interacting with C++ binaries.\\
@@ -328,7 +328,7 @@ This methodology provides a sensible approach for implementing the proposed syst
 This chapter provided a description of the intended outcome of this project and of the choices made prior to implementation in order to ensure its successful completion. It outlined the main requirements and explained how they were refined into a high-level structure of the system, explained the arguments which sustain the choice of several tools and programming languages and provided a description of a suitable implementation approach.
 \chapter{Implementation}
 
-The aim of this chapter is to acquaint the reader with the internal workings of the system by providing an in-depth description of the techniques used in order to add functionality and to improve the accuracy and overall performance of the system.\\
+The aim of this chapter is to acquaint the reader with the internal workings of the system by providing an in-depth description of the techniques used in order to add functionality or to improve the accuracy and overall performance of the system.\\
 \linebreak
 As mentioned in the previous chapter, the system is comprised of four major parts:
 \begin{itemize}
@@ -413,13 +413,14 @@ For each of the snapshots used as input a correspondent instance of the \emph{Im
 \begin{itemize}
 \item The location (in world coordinates) of the center of the camera. This is information is provided by the image generator.
 \item The features and descriptors. The \emph{OpenCV} interfaces \emph{FeatureDetector} and \emph{DescriptorExtrator} define easy-to-use methods for dealing with these.
-\item The camera matrix. This notion will be explored further in this section.
 \end{itemize}
 
 \begin{figure}
 \centerline{\includegraphics[scale=0.6]{figs/image.png}}
 \caption{The public methods of the \emph{Image} class.}
 \end{figure}
+
+In a later prototype, the \emph{Image} class will be extended further to include the camera matrix. In this respect, the basic prototype is structured differently because it makes use of the simplifications which arise from having only two views. The reasons for this change will be presented later in this chapter.
 
 \subsubsection{The Camera Matrix}
 In computer vision a \emph{camera} is defined as a mapping from a 3D space (the object space) to a 2D space (the image)\cite[p.153]{Hartley+2003}.\\ The camera model used throughout this project is the \emph{basic pinhole camera model}.
@@ -557,55 +558,26 @@ z \\
 Since \textbf{A} is not invertible its pseudo-inverse must be computed in order to determine \textbf{X}. The function \emph{invert} from \emph{OpenCV} provides an easy way to deal with computing the pseudo-inverse of non-quadratic matrices by using the \emph{singular value decomposition}\cite[p.~82]{Suli+2003} factorization method.\\
 \linebreak
 Although suitable for a basic prototype, the solution for the triangulation problem described in this section is generally not recommended for constructing a projective reconstruction. Its main shortcoming comes from its inability to deal with noise: a central assumption made by this method is that the two rays will intersect. Albeit this should be the case in ideal conditions, it is not generally true of two lines laying in 3-space. Since any amount of noise could cause the two rays to meet at infinity, a more error-resilient approach should be adopted. Such a method will be presented later in this chapter.
-\subsubsection{Locating Features in Image Coordinates}
-The derivations in the previous section required having prior knowledge of the 
-Assumption: the default height in Pov-ray is 1 (from -0.5 to 0.5)
-\begin{verbatim}
-Point2d FeatureMatcher::scaleToCameraUnits(Point2d p, Mat m) {
-  double ratio = m.size().width/m.size().height;
-  return Point2d(p.x/m.size().width*ratio,
-                 p.y/m.size().height);
-}
-
-//p1 - the 2D point (in camera coordinates) corresponding to the location of
-//     the feature with id m.queryIdx in img1.
-//p2 - the 2D point (in camera coordinates) corresponding to the location of
-//     the feature with id m.trainIdx in img2.
-void FeatureMatcher::cameraCoordinatesOfDMatch(
-    DMatch m,
-    shared_ptr<Image> img1,
-    shared_ptr<Image> img2,
-    Point2d& p1,
-    Point2d& p2) {
-
-  KeyPoint feature1 = (img1->getFeatures())[m.queryIdx];
-  KeyPoint feature2 = (img2->getFeatures())[m.trainIdx];
-
-  Mat m1 = img1->getMat();
-  Mat m2 = img2->getMat();
-  //translate coordinate system to camera plane
-  p1 = Point2d(feature1.pt.x - m1.size().width/2,
-               feature1.pt.y - m1.size().height/2);
-  p2 = Point2d(feature2.pt.x - m2.size().width/2,
-               feature2.pt.y - m2.size().height/2);
-
-  //scale to camera coordinates
-  p1 = scaleToCameraUnits(p1, m1);
-  p2 = scaleToCameraUnits(p2, m2);
-}
-
-\end{verbatim}
-
 
 
 \subsection{Multiple-View Reconstruction}
 The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views and to present a solution for this type of reconstruction.
 
 \subsubsection{Camera Matrix for a "Look-at" Camera}
-
+Thus far, the point cloud constructor yielded an up-to-scale representation of the input object. This has to do with the way in which the camera matrix is constructed: the first view is implicitly associated with the canonical camera matrix; the camera matrix for the second view is then determined in relation with the camera pose for the first view. The camera matrices computed this way are interdependent, and they introduce a scaling factor associated with each pair of images. This becomes problematic when the reconstruction is made from more than two images because each individual pair will give raise to a different scaling factor. \\
+This section presents a method of deducing the camera matrix directly from the camera pose and the viewing direction.
 
 \subsubsection{The Reconstruction Approach}
-
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.6]{figs/minRatio.png} 
+\caption{Motivation for minRatio: C1 and C2 are the locations of the camera for two different images. An object gets rendered in the second image at location \emph{x}. When an error (in red) in determining the position of \emph{x} is introduced, it results in a distance equal to the magnitude of the segment (object, P) between the real and computed 3D coordinates of the object. This distance increases dramatically when C2 is placed very close to C1. The two red segments have the same length and C2'x = C2x.}
+\end{center}
+\end{figure}
+As is case of stereo vision, 3D reconstruction is performed by determining similarities between a pair of images in order to infer the depth at various locations in the scene. When more than two images are provided, the result consists of the points determined by analyzing multiple pairs. The ideal method of selecting pairs of images from a set maximizes the number of matching features taken into account, while avoiding to pair up dissimilar images which are more likely to generate erroneous data.\\
+\linebreak
+Initially every image was paired with its K-closest neighbors. Empirical evidence suggested that if the two images were taken from a very close distance to each other the generated noise increased dramatically. Figure 3.4 illustrates why this is the case. \\
+In light of these observations a new method was proposed: two images are paired together only if the distance between the cameras belongs to the interval $[minRatio \cdot R, maxRato \cdot R]$, where $minRatio$ and $maxRatio$ are two parameters whose default values are 0.04 and 0.65 and $R$ is the radius of the sphere from which the pictures were taken (the distance from the position of the camera to the origin).
 
 \subsection{Refining the Reconstruction and Improving Performance}
 As mentioned right from the beginning of this document, the proposed system was expected to be highly error-prone. Consequently, a software engineering paradigm which allowed for repeatedly adding improvements to the initial design has been employed. This section aims to analyze these improvements.
@@ -620,7 +592,7 @@ Unlike the other improvements described in this section, the epipolar filtering 
 \end{center}
 \end{figure}\\
 Epipolar geometry is the geometry of two views. It aims to describe, for any position in the first view, the region in the second view where its corresponding position might reside. In this project, this knowledge is used in order to detect which of the presumably matching pairs returned by the feature matcher make geometric sense. Figure 3.3 seeks to give the reader an impression of the vast percentage of erroneous correspondences identified by the feature matcher.\\
-\newline
+\linebreak
 As depicted in Figure 3.4, each point in one view corresponds to a line in the second view. This means that a location $r$ in the right view is considered to be a correct match for the point $x_{L}$ for any $r$ on the epipolar line. Since it can only ever make sense for $x_{L}$ to get coupled with a unique $r$, this proves that epipolar filtering does not identify all of the erroneous matches. Instead, it reduces the state of possible solutions from a 2 dimensional one (the entire view) to just one dimension (the epipolar line). Figure 3.4 portrays the remaining uncertainty by showing the multitude of points in the object space ($X$, $X_{1}$, $X_{2}$ etc.) which will be projected onto the same point in the left view. The epipolar line is formed by projecting this infinite set of points onto the right view.\\
 \linebreak
 What follows is a description of some of the key notions pertaining to epipolar geometry \cite[chapter~9]{Hartley+2003}:
@@ -671,10 +643,10 @@ $x_{R}$ can match $x_{L}$ only if it belongs to the line joining $e_{R}$ and $p_
 There are multiple sources of errors introduced by the computation described so far (e.g.\ the pseudo-inverse of a non-square matrix, the use of a \emph{tolerance} parameter in determining whether a point is part of the epipolar line, floating point arithmetic etc.). Although typically each of these accounts only for an error of up to 0.0001 in the relevant quantities, triangulation can greatly amplify this effect: any amount of error in the estimated location of a 2D feature can lead to a significant difference in the perceived depth of the 3D point found by triangulation and the real location of the feature.\\
 Since there is no reliable way to test whether a perceivable error has been introduced, the following measures were taken to remove from the cloud the points which are less likely to be part of a correct representation:
 \begin{itemize}
-\item \textbf{Statistical Outlier Removal:}
-\item \textbf{Radius Outlier Removal:}
+\item \textbf{Statistical Outlier Removal}: For every point in the cloud the mean distance to its K-nearest neighbours is computed. The distribution of these mean distances is assumed to be Gaussian. A point is removed from the cloud if its corresponding mean distance lays outside of a certain interval of the underlying Gaussian.  
+\item \textbf{Radius Outlier Removal}: A point is removed from the cloud if there are fewer than \emph{N} points at a distance of at most \emph{d} from the initial point. 
 \end{itemize}
-Both of these\\
+Both of these filters are provided by \textbf{PCL}. My implementation is based on the tutorials found at \url{http://pointclouds.org/documentation/tutorials/statistical_outlier.php} and \url{http://pointclouds.org/documentation/tutorials/remove_outliers.php}.\\
 \linebreak
 Another filter was assembled to limit the magnitude of the error introduced by the use of pseudo-inverses in \emph{Triangulation}: whenever a 3D point is determined, it is re-projected onto the image plane with the use of the camera matrix. If the distance between the feature used in determining the 3D point and the corresponding reprojection is greater than \emph{MaxReprojectionError}, the 3D point is not added to the solution set. 
 
