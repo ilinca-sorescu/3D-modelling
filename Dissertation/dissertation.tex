@@ -650,12 +650,47 @@ Both of these filters are provided by \textbf{PCL}. My implementation is based o
 \linebreak
 Another filter was assembled to limit the magnitude of the error introduced by the use of pseudo-inverses in \emph{Triangulation}: whenever a 3D point is determined, it is re-projected onto the image plane with the use of the camera matrix. If the distance between the feature used in determining the 3D point and the corresponding reprojection is greater than \emph{MaxReprojectionError}, the 3D point is not added to the solution set. 
 
-\subsubsection{Optimizations and Parallelism}
-In order to make full use of the computing power available .
-thread pools for parallelism + 
 \subsubsection{Error-resilient Triangulation}
+As mentioned above, triangulation consists of solving a system of equations of the form:\\
+\begin{center}
+$u * \mathbf{c}_{3}^TX - \mathbf{c}_{1}^TX=0$
+\end{center}
+For noisy data it might be the case that not all of the equations can become equal to 0. The more general form is this:
+\begin{center}
+$u * \mathbf{c}_{3}^TX - \mathbf{c}_{1}^TX=\epsilon_u$
+\end{center}
+It is important to note that in dealing with the errors resulted from triangulation, $\epsilon$ is not the value to be minimized. Instead, the measure of error is defined as the error found by reprojecting X onto the image plane:
+\begin{center}
+$\delta _u = u - \mathbf{c_1X/c_3X}$
+\end{center}
+\textbf{Iterative-LS}\cite[p.~9]{Hartley96triangulation} aims to  $\delta$
 reweigh triangulation until errors are reduced or for at most 10 iterations.
 starts off by doing the naive triangulation (corresponding with weights 1 1 1 1)
+
+\subsubsection{Parallelism}
+The process of determining points on the surface of the object is computationally expensive. Fortunately, several tasks can be performed in parallel to make full use of the CPU resources available. \emph{Boost} provides a convenient way to deal with parallelism: \\
+\begin{verbatim}
+ mutex push_backMutex;
+ boost::basic_thread_pool pool(8);
+ for(auto p1 = 0u; p1 != images.size(); ++p1)
+    pool.submit([this, p1, radius, &points3D, &push_backMutex]() {
+    	...
+    	for every image p2 such that (p1, p2) are a pair:
+    		 determine 3D points from analyzing correspondences between p1 and p2
+    		 and add them to the solution vector.
+    	...
+    });
+ pool.close();
+ pool.join();
+\end{verbatim}
+The \emph{push\_backMutex} is used to ensure that no two threads attempt to add a solution to the $point3D$ vector at the same time.\\
+Thread pools are used on multiple instances across the point cloud construction module. The most notable occasions are the one presented above, and the one involved in reading the input images.
+
+\subsection{Data structures}
+Matrix arithmetic is extensively used throughout this module. \\
+\linebreak 
+\\
+\linebreak 
 
 \subsection{The Build System}
 By virtue of being the most complex module of the system, the point cloud constructor soon began to span over 10 source files and to have several dependencies. As a result, readjusting the \emph{Makefile} for every new insertion became a burdensome task. The preferred alternative was to use an open-source software construction tool, \emph{Scons}\footnote{\url{http://www.scons.org/}}, which provides built-in automatic dependency analysis. The configuration script for \emph{Scons} was substantially easier to maintain. An example of such a configuration script can be found in Appendix B.
@@ -664,51 +699,31 @@ By virtue of being the most complex module of the system, the point cloud constr
 This module is implemented as an individual console application. The user must specify the path to the folder containing input pictures. The following parameters are optional:
 \begin{itemize}
 \item \textbf{N}: the number of snapshots to be considered. By default this is equal to the number of images in the specified folder. 
-\item \textbf{Conf}: the path to a text file which contains the desired values for \emph{MinRatio, MaxRatio, Maximum reprojection error} and \emph{Tolerance}.
+\item \textbf{Conf}: the path to a text file which contains the desired values for \emph{MinRatio, MaxRatio, Maximum reprojection error}, \emph{Tolerance} and the name of the output file.
 \end{itemize}
 
 \section{The Surface Reconstructor}
 
 
 \section{The Evaluation Module}
-This module consists of independent pieces of code which serve the purpose of evaluating the performance of the other modules. It is used in order to automatically plot the accuracy of the outcome under different conditions by systematically varying the input arguments of the point cloud constructor and repeatedly rerunning the latter in order to acquire data. 
-\subsection{The Data Gatherer}
-runs point cloud constructor for a specified range of parameters. 
-exports a config file (with a randomized name to avoid concurrency issues) along with the output and the timing info(the result of writing in terminal 'time pcc ...').
-\subsection{The Plot Maker}
-reads the config files exported by data gatherer (converts the data into dictionaries example: \begin{verbatim}
-    return {'minRatio':minRatio,
+This module consists of independent pieces of code which serve the purpose of evaluating the performance of the other modules. It is used in order to automatically plot the accuracy of the outcome gathered by varying the input arguments of the point cloud constructor.\\
+\linebreak
+\textbf{The Data Gatherer} runs point cloud constructor for a specified range of parameters. It exports the generated \emph{config} file along with the output of the point cloud constructor and the timing information obtained by running the \emph{time} command. The name of the \emph{config} file is chosen at random to avoid name clashes.\\
+\linebreak
+\textbf{Plot Maker} imports the \emph{config} files exported by the data gatherer, and converts them into dictionaries of the form: \begin{verbatim}    
+          { 'minRatio':minRatio,
             'maxRatio':maxRatio,
             'reprojectionError':reprojectionError,
             'tolerance':tolerance,
             'outputFilename':outputFilename,
             'inputFolder':inputFolder,
             'numPics':numPics,
-            'configFilename': filename}
-\end{verbatim} and keeps the ones which match the specified values in a dictionary.\\
-then calls the plotting function with list of relevant dictionaries( = config files) and a function as parameter which computes value from configfilename. throws exception if not possible.\\
-function for getting data from qhull: \begin{verbatim}
-def runQHull(configFilename):
-    prepareCloudFile(configFilename + "_cloud")
-    command = "cat /tmp/cloud | qhull FA "
-    try:
-        qhullOutput = subprocess.check_output(command, shell=True).decode("UTF-8")
-    except subprocess.CalledProcessError:
-        raise ErrorGatheringPlotData
-    numbers = re.findall(r"\d+\.?\d*", qhullOutput)
-    qhullDict = {
-            'numVertices':numbers[0],
-            'numHullVertices':numbers[2],
-            'numFacets':numbers[3],
-            'totalFacetArea':numbers[8],
-            'totalQhullVolume':numbers[9]
-            }
-    f = open(configFilename + "_qhullDict", "w")
-    json.dump(qhullDict, f)
-    f.close()
-
-\end{verbatim} exports with json so it's never run twice for the same data.\\
-plots using matplotlib. statistical methods discussed in eval.
+            'configFilename': filename }
+\end{verbatim}
+The dictionaries are filtered to match the purposes of the plot. Typically one of the input parameters is unset such that it can be used as the domain of the function to be plotted.\\
+For every value in the domain, some computation is performed on the output of point cloud constructor to evaluate the result at that point in the function. If the computation is thought to be expensive, the resulting data is serialized and dumped on the disk to avoid the need to recompute it. The function is then plotted using \emph{matplotlib}.\\
+\linebreak
+The evaluation module provides the support for constructing virtually any plot which has to do with the output of the previous modules. The specific metrics and statistical methods involved in evaluating the results will be described further in chapter 4. 
 \section{Summary} 
 
 
@@ -721,22 +736,22 @@ plots using matplotlib. statistical methods discussed in eval.
 \subsection{Confidence Intervals}
 \subsection{Volume of Reconstruction}
 \begin{figure}
-\begin{center}
-\includegraphics[scale=0.6]{figs/minRatio0.png}	
+\begin{center} 
+\includegraphics[scale=0.7]{figs/minRatio0.png}	
 \caption{bla}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.6]{figs/volumeByMinRatio.png}	
+\includegraphics[scale=0.7]{figs/volumeByMinRatio.png}	
 \caption{lala}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.6]{figs/minRatio004.png}	
+\includegraphics[scale=0.7]{figs/minRatio004.png}	
 \caption{lala}
 \end{center}
 \end{figure}
@@ -744,13 +759,13 @@ plots using matplotlib. statistical methods discussed in eval.
 \section{Performance Analysis}
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.6]{figs/time.png}	
+\includegraphics[scale=0.7]{figs/time.png}	
 \caption{lala}
 \end{center}
 \end{figure}
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.6]{figs/numVertices.png}	
+\includegraphics[scale=0.7]{figs/numVertices.png}	
 \caption{lala}
 \end{center}
 \end{figure}
