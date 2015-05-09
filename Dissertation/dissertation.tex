@@ -30,6 +30,7 @@
 \renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
                                         % more readable
 
+
 \begin{document}
 
 \bibliographystyle{plain}
@@ -113,7 +114,6 @@ extent for a comparable purpose.
 % now for the chapters
 
 \pagestyle{headings}
-
 \chapter{Introduction}
 The term 3D reconstruction refers to the process of capturing the shape and appearance of real objects.\\
 The aim of this project is to undertake the design and implementation of a system which reconstructs the surface of the object from a sequence of photos.\\
@@ -162,10 +162,13 @@ The working solutions of ill-posed problems in the field of computer vision atte
 \linebreak
 The difficulties mentioned above are not the only complication which was expected to arise. Other factors which increased the risk of the undertaking are having to rely on the performance of external libraries any my own lack of experience with projects of this scale. 
 
+\setcounter{footnote}{-1}
+
 \begin{figure}
 \centerline{\includegraphics[scale=0.8]{figs/CHICKENS.jpg}}
-\caption{Results in the field of 3D reconstruction. The digital models of chickens are obtained using the web-based tool ARC3D. These models were constructed as part of the iMinds INSTANCE project.}
+\caption{Results in the field of 3D reconstruction. The digital models of chickens are obtained using the web-based tool ARC3D. These models were constructed as part of the iMinds INSTANCE project.\protect\footnotemark}
 \end{figure}
+\footnotetext{The image can be found at \url{http://homes.esat.kuleuven.be/~konijn/3d/}. I have been given permission to use this image.}
 \section{Related Work}
 This section serves to present some of the work done in the field of 3D reconstruction and to discuss its techniques and results in the light of this project.\\
    \\
@@ -565,7 +568,25 @@ The techniques described so far assumed the use of only two input images. This s
 
 \subsubsection{Camera Matrix for a "Look-at" Camera}
 Thus far, the point cloud constructor yielded an up-to-scale representation of the input object. This has to do with the way in which the camera matrix is constructed: the first view is implicitly associated with the canonical camera matrix; the camera matrix for the second view is then determined in relation with the camera pose for the first view. The camera matrices computed this way are interdependent, and they introduce a scaling factor associated with each pair of images. This becomes problematic when the reconstruction is made from more than two images because each individual pair will give raise to a different scaling factor. \\
-This section presents a method of deducing the camera matrix directly from the camera pose and the viewing direction.
+This section presents a method of deducing the camera matrix directly from the camera pose and the viewing direction. Since it is very convenient to describe a camera in this "look-at" fashion, this approach is extensively used in 3D graphics, including as part of the \emph{OpenGL} API.\\
+\linebreak
+It was previously shown that the camera matrix has the form $C = (R | t)$, where every row of $R$ defines the direction of one axis of the camera as seen from the perspective of the world. This can be deduced from the information mentioned above:
+\begin{itemize}
+\item \textbf{the z-axis:} As defined in the pinhole model, the z-axis points toward the target point. In this project the target points is assumed to be the origin, so $\mathbf{z} = cameraPose$. 
+\item \textbf{the x-axis:} The "look-at" assumes no rotation around the z-axis of the camera. As a result, the y-axis of the camera is always coplanar to the target direction and the y-axis of the world. Therefore, $\mathbf{x} = \mathbf{z} \times (0, 1, 0)$.
+\item \textbf{the y-axis:} must be perpendicular to both the x-axis and the z-axis. $\mathbf{y} = \mathbf{x} \times \mathbf{z}$.
+\end{itemize}
+The equations presented above assume normalization after every step.\\
+\linebreak
+Now $R = \begin{bmatrix}
+\mathbf{x} \\
+\mathbf{y} \\
+\mathbf{z} \\
+\end{bmatrix}$, and the translation vector can easily be obtained from the equation
+\begin{equation}
+\mathbf{t} = -R \cdot cameraPose
+\end{equation}
+$\qedhere$
 
 \subsubsection{The Reconstruction Approach}
 \begin{figure}
@@ -577,7 +598,7 @@ This section presents a method of deducing the camera matrix directly from the c
 As is case of stereo vision, 3D reconstruction is performed by determining similarities between a pair of images in order to infer the depth at various locations in the scene. When more than two images are provided, the result consists of the points determined by analyzing multiple pairs. The ideal method of selecting pairs of images from a set maximizes the number of matching features taken into account, while avoiding to pair up dissimilar images which are more likely to generate erroneous data.\\
 \linebreak
 Initially every image was paired with its K-closest neighbors. Empirical evidence suggested that if the two images were taken from a very close distance to each other the generated noise increased dramatically. Figure 3.4 illustrates why this is the case. \\
-In light of these observations a new method was proposed: two images are paired together only if the distance between the cameras belongs to the interval $[minRatio \cdot R, maxRato \cdot R]$, where $minRatio$ and $maxRatio$ are two parameters whose default values are 0.04 and 0.65 and $R$ is the radius of the sphere from which the pictures were taken (the distance from the position of the camera to the origin).
+In light of these observations a new method was proposed: two images are paired together only if the distance between the cameras belongs to the interval $[minRatio \cdot R, maxRato \cdot R]$, where $minRatio$ and $maxRatio$ are two parameters whose default values are 0.04 and 0.65 and $R$ is the radius of the sphere from which the pictures were taken (the distance from the position of the camera to the origin.
 
 \subsection{Refining the Reconstruction and Improving Performance}
 As mentioned right from the beginning of this document, the proposed system was expected to be highly error-prone. Consequently, a software engineering paradigm which allowed for repeatedly adding improvements to the initial design has been employed. This section aims to analyze these improvements.
@@ -652,21 +673,20 @@ Another filter was assembled to limit the magnitude of the error introduced by t
 
 \subsubsection{Error-resilient Triangulation}
 As mentioned above, triangulation consists of solving a system of equations of the form:\\
-\begin{center}
-$u * \mathbf{c}_{3}^TX - \mathbf{c}_{1}^TX=0$
-\end{center}
+\begin{equation}
+u * {c}_{3}^TX - {c}_{1}^TX=0
+\end{equation}
 For noisy data it might be the case that not all of the equations can become equal to 0. The more general form is this:
-\begin{center}
-$u * \mathbf{c}_{3}^TX - \mathbf{c}_{1}^TX=\epsilon_u$
-\end{center}
-It is important to note that in dealing with the errors resulted from triangulation, $\epsilon$ is not the value to be minimized. Instead, the measure of error is defined as the error found by reprojecting X onto the image plane:
-\begin{center}
-$\delta _u = u - \mathbf{c_1X/c_3X}$
-\end{center}
-\textbf{Iterative-LS}\cite[p.~9]{Hartley96triangulation} aims to  $\delta$
-reweigh triangulation until errors are reduced or for at most 10 iterations.
-starts off by doing the naive triangulation (corresponding with weights 1 1 1 1)
+\begin{equation}
+u * {c}_{3}^TX - {c}_{1}^TX=\epsilon_u
+\end{equation}
+It is important to note that in dealing with the errors resulted from triangulation, $\epsilon$ is not the value to be minimized. Instead, the measure of error is defined as the distance between the reprojection of X onto the image plane and the location of the feature: 
+\begin{equation}
+\delta_u = u - c_1X/c_3X
+\end{equation}
+\textbf{Iterative-LS}\cite[p.~9]{Hartley96triangulation} aims to  find the 3D point $X$ whose associated error vector $\delta$ has the smallest magnitude. It is based on the simple observation that equation (3.13) is similar in form to equation (3.12). The two formulae are not equivalent, however, because the reweighing factor needed to turn one into the other depends on the value of the solution. One way to estimate the value of X from these two systems of equations is to start off by finding $X_0$, the solution of equation set (3.11), and then iteratively compute a new approximation $X_i$  by weighting the equations using the previously estimated value, $X_{i-1}$. Using this technique the solution is expected to converge to the real value within 10 iterations. In the cases in which the set of values is not found to converge the solution is discarded.
 
+ 
 \subsubsection{Parallelism}
 The process of determining points on the surface of the object is computationally expensive. Fortunately, several tasks can be performed in parallel to make full use of the CPU resources available. \emph{Boost} provides a convenient way to deal with parallelism: \\
 \begin{verbatim}
@@ -686,12 +706,6 @@ The process of determining points on the surface of the object is computationall
 The \emph{push\_backMutex} is used to ensure that no two threads attempt to add a solution to the $point3D$ vector at the same time.\\
 Thread pools are used on multiple instances across the point cloud construction module. The most notable occasions are the one presented above, and the one involved in reading the input images.
 
-\subsection{Data structures}
-Matrix arithmetic is extensively used throughout this module. \\
-\linebreak 
-\\
-\linebreak 
-
 \subsection{The Build System}
 By virtue of being the most complex module of the system, the point cloud constructor soon began to span over 10 source files and to have several dependencies. As a result, readjusting the \emph{Makefile} for every new insertion became a burdensome task. The preferred alternative was to use an open-source software construction tool, \emph{Scons}\footnote{\url{http://www.scons.org/}}, which provides built-in automatic dependency analysis. The configuration script for \emph{Scons} was substantially easier to maintain. An example of such a configuration script can be found in Appendix B.
 
@@ -708,7 +722,7 @@ This module is implemented as an individual console application. The user must s
 \section{The Evaluation Module}
 This module consists of independent pieces of code which serve the purpose of evaluating the performance of the other modules. It is used in order to automatically plot the accuracy of the outcome gathered by varying the input arguments of the point cloud constructor.\\
 \linebreak
-\textbf{The Data Gatherer} runs point cloud constructor for a specified range of parameters. It exports the generated \emph{config} file along with the output of the point cloud constructor and the timing information obtained by running the \emph{time} command. The name of the \emph{config} file is chosen at random to avoid name clashes.\\
+\textbf{The Data Gatherer} runs point cloud constructor for a specified range of input parameters. It exports the generated \emph{config} file along with the output of the point cloud constructor and the timing information obtained by running the \emph{time} command. The name of the \emph{config} file is chosen at random to avoid name clashes.\\
 \linebreak
 \textbf{Plot Maker} imports the \emph{config} files exported by the data gatherer, and converts them into dictionaries of the form: \begin{verbatim}    
           { 'minRatio':minRatio,
@@ -723,9 +737,11 @@ This module consists of independent pieces of code which serve the purpose of ev
 The dictionaries are filtered to match the purposes of the plot. Typically one of the input parameters is unset such that it can be used as the domain of the function to be plotted.\\
 For every value in the domain, some computation is performed on the output of point cloud constructor to evaluate the result at that point in the function. If the computation is thought to be expensive, the resulting data is serialized and dumped on the disk to avoid the need to recompute it. The function is then plotted using \emph{matplotlib}.\\
 \linebreak
-The evaluation module provides the support for constructing virtually any plot which has to do with the output of the previous modules. The specific metrics and statistical methods involved in evaluating the results will be described further in chapter 4. 
+The evaluation module provides support for constructing virtually any plot which has to do with the output of the previously described modules. The specific metrics and statistical methods involved in evaluating the results will be described further in chapter 4. 
 \section{Summary} 
-
+This chapter focused on outlining the issues encountered throughout the development of this project, and on presenting the approach taken for tackling them. The issues identified belong to different areas of computer science, ranging from purely theoretical background encompassing the formulae of multiple-view geometry to technical details involved in the compilation of the code. \\
+\linebreak
+The most notable section of this chapter followed the evolution of the point cloud construction module. It included descriptions of the camera matix, tringulation and epipolar geometry, along with a high-level description of the resulting prototypes.
 
 \chapter{Evaluation}
 \section{General Results}
@@ -737,36 +753,36 @@ The evaluation module provides the support for constructing virtually any plot w
 \subsection{Volume of Reconstruction}
 \begin{figure}
 \begin{center} 
-\includegraphics[scale=0.7]{figs/minRatio0.png}	
-\caption{bla}
+\includegraphics[scale=0.67]{figs/minRatio0.png}	
+\caption{The total volume and total facet area as a function of the number of input images used. The dotted red lines represent the real values for the volume and facet area respectively. Here, the value of minRatio is 0.}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.7]{figs/volumeByMinRatio.png}	
-\caption{lala}
+\includegraphics[scale=0.67]{figs/volumeByMinRatio.png}	
+\caption{The number of images used is set to 3000. The plot presents the total volume as a function of minRatio.}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.7]{figs/minRatio004.png}	
-\caption{lala}
+\includegraphics[scale=0.67]{figs/minRatio004.png}	
+\caption{The volume and total facet area as a function of the number of input images. Unlike in Figure 4.1, in this plot the value of minRatio is 0.04.}
 \end{center}
 \end{figure}
 
 \section{Performance Analysis}
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.7]{figs/time.png}	
-\caption{lala}
+\includegraphics[scale=0.67]{figs/time.png}	
+\caption{The execution time as a function of the number of input images.}
 \end{center}
 \end{figure}
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.7]{figs/numVertices.png}	
-\caption{lala}
+\includegraphics[scale=0.67]{figs/numVertices.png}	
+\caption{The number of vertices in the output cloud as a function of the number of input images.}
 \end{center}
 \end{figure}
 

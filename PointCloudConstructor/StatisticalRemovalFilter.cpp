@@ -1,3 +1,4 @@
+//based on http://pointclouds.org/documentation/tutorials/statistical_outlier.php
 #include <pcl/filters/statistical_outlier_removal.h>
 #include "StatisticalRemovalFilter.h"
 

@@ -456,7 +456,8 @@ void PointCloudConstructor::populateCloud(
 }
 
 void PointCloudConstructor::cloudToPCD(string outFile) {
-  pcl::io::savePCDFileASCII(outFile, *cloud);
+  if(cloud->points.size())
+    pcl::io::savePCDFileASCII(outFile, *cloud);
 }
 
 void PointCloudConstructor::cloudToTxt(String outFile) {

@@ -1,3 +1,4 @@
+//based on http://docs.pointclouds.org/trunk/group__surface.html
 #include <pcl/common/common.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/features/normal_3d_omp.h>

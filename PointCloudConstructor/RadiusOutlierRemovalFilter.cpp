@@ -1,3 +1,4 @@
+//based on http://pointclouds.org/documentation/tutorials/remove_outliers.php
 #include <iostream>
 #include <pcl/point_types.h>
 #include <pcl/filters/radius_outlier_removal.h>

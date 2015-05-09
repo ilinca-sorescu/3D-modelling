@@ -1,3 +1,4 @@
+//based on http://pointclouds.org/documentation/tutorials/greedy_projection.php
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
