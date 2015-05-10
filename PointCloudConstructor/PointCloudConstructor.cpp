@@ -15,7 +15,7 @@
 #include <mutex>
 
 #define white 16777215
-#define epsilon 0.0001
+#define epsilon 0.01
 
 using namespace std;
 using namespace cv;
