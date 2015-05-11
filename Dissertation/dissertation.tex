@@ -74,9 +74,9 @@ Name:               & \bf Ilinca Gabriela Sorescu                       \\
 College:            & \bf Newnham College                               \\
 Project Title:      & \bf Constructing 3D Models from Image Sequences   \\
 Examination:        & \bf Computer Science Tripos -- Part II, July 2015  \\
-Word Count:         & \bf  \\
-Project Originator: & I. G. Sorescu                     \\
-Supervisor:         & Karina Palyutina                  \\ 
+Word Count:         & \bf 11148 \\
+Project Originator: & \bf I. G. Sorescu                     \\
+Supervisor:         & \bf Karina Palyutina                  \\ 
 \end{tabular}
 }
 
@@ -585,11 +585,11 @@ It was previously shown that the camera matrix has the form $C = (R | t)$, where
 \end{itemize}
 The equations presented above assume normalization after every step.\\
 \linebreak
-%Now $R = \begin{bmatrix}
-%\mathbf{x} \\
-%\mathbf{y} \\
-%\mathbf{z} \\
-%\end{bmatrix}$, and the translation vector can easily be obtained from the equation
+Now $R = \begin{bmatrix}
+\mathbf{x} \\
+\mathbf{y} \\
+\mathbf{z} \\
+\end{bmatrix}$, and the translation vector can easily be obtained from the equation
 \begin{equation}
 \mathbf{t} = -R \cdot cameraPose
 \end{equation}
@@ -962,24 +962,17 @@ Here, the point cloud constructor is being run on inputs consisting of up to 300
 \end{figure}
 
 \section{Testing}
-Since the project is designed to be application-driven, a formal proof of correctness was not needed. Instead, the testing strategy outlined below was used to informally verify that the code performs as expected. \\
-\linebreak
-
-
-To fulfill the success criteria, most of the testing that was required was done manually because [...]. I have used a mixed strategy of unit testing and integration testing. Due to multiple sections being developed simultaneously, continuous integration was essential. At every stage, the whole system was reevaluated and tested to ensure that all sections . 
-
-unit testing: some unit testing was performed. i chose to do them inline for the functions
-
-What follows is the description of the most important test cases:
-\begin{itemize}
-\item
-\item
-\item
-\item
-\end{itemize}
+Since the project is designed to be application-driven, a formal proof of correctness was not needed. Instead, the testing strategy outlined below was used to informally verify that the code performs as expected. This strategy consists of a mixture of manual checks, integration testing and unit testing, and it was performed as follows:
+\subsection{Manual Testing}
+Due to the fact that in this project most errors produce a visible effect in the visualization of the output, most of the testing that was required was performed manually. In doing so, the locations of the off-points was estimated from the visualization and the steps which led to the inference of those points were tracked in order to determine where the error was first introduced. Replacing the manual checks with an automatic approach for verifying that the output is sensible would not be feasible in this case because it is difficult to identify the off-points for any input shape. The manual checks were found to be a satisfactory alternative, leading to the fulfillment of the success criteria.
+\subsection{Continuous Integration}
+Due to multiple sections being developed simultaneously, continuous integration was essential in order to avoid the creation of an "integration hell" during the implementation of the point cloud constructor. At every stage, the whole system was reevaluated and tested to ensure that all sections were running in concert to achieve the desired effect.
+\subsection{Unit Testing}
+Some unit testing was performed to ensure that certain criteria were still met as the code underwent various changes. I chose to do the tests inline, by applying a given function to a mock set of function parameters.\\
+This type of testing was extensively used throughout the point cloud construction module in order to verify the soundness of mathematical derivations. For example, to verify the correctness of function which computes the camera matrix from a given camera pose, it was run with the value of the $cameraPose$ parameter set to (3.73357, 3.06849, 1.2825). When the resulting camera matrix is multiplied by the transpose of the camera pose vector (in homogeneous coordinates), the result is expected to be (0, 0, 0). 
 
 \section{Summary}
-In this chapter I described the means of evaluating the results of this project by outlining the methodology used for gathering and plotting the data. The plots were presented and compared to the expected results.\\ 
+In this chapter I described the means of evaluating the results of this project by outlining the methodology used for gathering and plotting the data. The resulting plots were presented and compared to the initial predictions.\\ 
 The last section of this chapter discussed the measures taken to ensure that the code performs as expected.
 
 \chapter{Conclusion}

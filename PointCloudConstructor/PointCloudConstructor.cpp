@@ -521,7 +521,8 @@ int main(int argc, char *argv[]) {
   pcc->cloudToTxt(PointCloudConstructor::OutputFile);
   pcc->cloudToPCD(PointCloudConstructor::OutputFile + ".pcd");
 
- /* Matx34d C1 = pcc->getImages()[306]->getCameraMatrix();
+//----------------test--------------------//
+  Matx34d C1 = pcc->getImages()[306]->getCameraMatrix();
   Point3d p1 = pcc->getImages()[306]->getCameraPose();
   Matx31d R1 = C1*Matx41d(p1.x, p1.y, p1.z, 1);
   cout<<"p1: "<<p1.x<<" "<<p1.y<<" "<<p1.z<<endl;
@@ -529,7 +530,7 @@ int main(int argc, char *argv[]) {
               <<C1(1, 0)<<" "<<C1(1, 1)<<" "<<C1(1, 2)<<" "<<C1(1, 3)<<endl
               <<C1(2, 0)<<" "<<C1(2, 1)<<" "<<C1(2, 2)<<" "<<C1(2, 3)<<endl;
   cout<<"R1: "<<R1(0, 0)<<" "<<R1(1, 0)<<" "<<R1(2, 0)<<endl<<endl;
-
+/*
 
   Matx34d C2 = pcc->getImages()[984]->getCameraMatrix();
   Point3d p2 = pcc->getImages()[984]->getCameraPose();
