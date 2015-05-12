@@ -22,7 +22,7 @@
 \usepackage{amsthm}
 \usepackage{mwe}
 \usepackage{subfig}
-
+\usepackage{csquotes}
 
 % \usepackage{wrapfig}
 \raggedbottom                           % try to avoid widows and orphans
@@ -87,7 +87,7 @@ The design and implementation of a system which emulates the shape of a 3D model
 
 
 \section*{Work Completed}
-All objectives drafted in the project proposal have been met: a system which generates snapshots of a 3D model has been assembled, along with a module for reconstructing the 3D model from images and an evaluation module. The accuracy of the results was plotted using the evaluation module and found to be adequate for a large enough set of input images.  
+All objectives drafted in the project proposal have been met: a system which generates snapshots of a 3D model has been assembled, along with a module for reconstructing the 3D model from images and an evaluation module. The accuracy of the results was evaluated and found to be adequate for a large enough set of input images.  
 
 \section*{Special Difficulties}
 None.
@@ -118,8 +118,8 @@ extent for a comparable purpose.
 
 \pagestyle{headings}
 \chapter{Introduction}
-The term 3D reconstruction refers to the process of capturing the shape and appearance of real objects.\\
 The aim of this project is to undertake the design and implementation of a system which reconstructs the surface of the object from a sequence of photos.\\
+The term 3D reconstruction refers to the process of capturing the shape and appearance of real objects.\\
 \linebreak
 This chapter will explore the motivation for this project along with some of the related work done in this field. 
 
@@ -128,18 +128,18 @@ This section will introduce the reader to the wide range of applications of the 
 \linebreak 
 The ability to construct digital models of the objects we might encounter on a day-to-day basis has proven to be a valuable asset with applications in many different areas. Here are a few examples of such applications:
 \begin{itemize}
-\item medicine: recent efforts have made significant leaps towards making 3D printing of organs a reality. In order to create a functional replica of a sick organ we must first produce a digital model of the organ which needs to be replaced. 
-\item manufacturing process: 3D models can expedite the design process of the next prototype of a product or help to reverse-engineer the development of a given object.   
-\item restoration: digital models can facilitate the restoration process of objects with cultural importance. In addition to this, entire museum collections could be made available online as 3D galleries.  
-\item scientific analysis: the digital analysis of a 3D map of the terrain in a specific area could lead to scientific breakthroughs in geology.
+\item Medicine: recent efforts have made significant leaps towards making 3D printing of organs a reality. In order to create a functional replica of a sick organ we must first produce a digital model of the organ which needs to be replaced. 
+\item Manufacturing process: 3D models can expedite the design process of the next prototype of a product or help to reverse-engineer the development of a given object.   
+\item Restoration: digital models can facilitate the restoration process of objects with cultural importance. In addition to this, entire museum collections could be made available online as 3D galleries.  
+\item Scientific analysis: the digital analysis of a 3D map of the terrain in a specific area could lead to scientific breakthroughs in geology.
 \end{itemize}
 In some of the cases outlined above systems which serve a similar purpose to the one described in this document are already in use. Nonetheless, it has become apparent that many more industries could greatly benefit from the use of such a system. Their failure to adopt this strategy suggests that the systems available thus far are either incompatible or too expensive. Either way, it is clear that more development needs to be done in this area. \\  
 \linebreak
 The technology currently used for constructing 3D models is based, in most cases, on the use of 3D scanners. What follows is a justification of the need for a general-purpose 3D modeling system which is based on a sequence of pictures, thus superseding the use of specialized hardware:
 \begin{itemize}
 \item 3D scanners are expensive
-\item some of the possible applications of 3D reconstruction go beyond the current range of applicability of 3D scanning. 
-\item pictures can be taken with any digital camera, including the ones embedded in mobile phones. Since most people have their mobile phones with them at all times, this means that the users do not have to foresee the need to create a 3D reconstruction. This is especially useful in making 3D reconstruction available for home users which could lead to the development of a new direction in video gaming.
+\item Some of the possible applications of 3D reconstruction go beyond the current range of applicability of 3D scanning. 
+\item Pictures can be taken with any digital camera, including the ones embedded in mobile phones. Since most people have their mobile phones with them at all times, this means that the users do not have to foresee the need to create a 3D reconstruction. This is especially useful in making 3D reconstruction available for home users which could lead to the development of a new direction in video gaming.
 \end{itemize}
 For the reasons outlined above, exploring a cheaper alternative to constructing 3D models based on data acquired with 3D scanners is a worthwhile effort. This document describes my attempt to construct such a system. 
 
@@ -157,7 +157,7 @@ Like most inverse problems, 3D reconstruction is an ill-posed problem because it
 \end{itemize}
 Each of the disobeyed conditions adds to the difficulty of the task:\\
 \begin{itemize}
-\item If there are multiple possible solutions for an inherent part of the task one must be able to identify which factors make a solution more probable than another. In the case of 3D reconstruction, determining the depth attributes of the scene can have more than one solution. The reasons for this will be discussed later.
+\item If there are multiple possible solutions for an inherent part of the task one must be able to identify which factors make a solution more probable than another. In the case of 3D reconstruction, determining the depth attributes of the scene can have more than one solution. The reasons for this will be discussed in the Implementation chapter.
 \item If the third condition is disobeyed, the solution is likely to be very error-prone.
 \end{itemize}
 The complexity of such problems is very easy to underestimate. However, in some respects, providing an exact solution to such a problem is an \textit{AI-complete} task.\\
@@ -165,7 +165,7 @@ The working solutions of ill-posed problems in the field of computer vision atte
 \linebreak
 The difficulties mentioned above are not the only complication which was expected to arise. Other factors which increased the risk of the undertaking are having to rely on the performance of external libraries any my own lack of experience with projects of this scale. 
 
-\setcounter{footnote}{-1}
+\setcounter{footnote}{0}
 
 \begin{figure}
 \centerline{\includegraphics[scale=0.8]{figs/CHICKENS.jpg}}
@@ -178,37 +178,37 @@ This section serves to present some of the work done in the field of 3D reconstr
 \linebreak
 A list of 3D reconstruction software can be found in appendix A. Most of the entries in this list do not fully reflect the aims of this project either because they make use of 3D scanners or other specialized hardware or because they don't provide support for automatic modeling. Nonetheless, the accuracy with which such software reconstructs an object is an important factor to consider when deciding whether this project should be considered a success.\\
 \linebreak
-Out of the software presented in appendix A, the tool which best resembles the aims of this project is Ku Leuven's ARC3D\footnote{\url{http://homes.esat.kuleuven.be/~visit3d/webservice/v2/}}. This impressive web-based software is a free, fully-automatic tool for extracting a 3D model from a sequence of images. Its 3D photo gallery\footnote{\url{http://homes.esat.kuleuven.be/~konijn/3d/}} unveils a series of life-like models, some of which were even used in order to print replicas of the initial object.\\
+Out of the software presented in appendix A, the tool which best resembles the aims of this project is Ku Leuven's ARC3D\footnote{\url{http://homes.esat.kuleuven.be/~visit3d/webservice/v2/}}. This impressive web-based software is a free, fully-automatic tool for extracting a 3D model from a sequence of images. Its 3D photo gallery\footnote{\url{http://homes.esat.kuleuven.be/~konijn/3d/}} unveils a series of life-like models, some of which were even used in order to print replicas of the initial object. Figure 1.1 gives an example of models obtained using ARC3D.\\
 \linebreak
-ARC3D bases its computation on the notion of dense reconstruction\cite{tingdahl_lncs_11}. This is more powerful than the approach described in the following chapters of this document because it aims to estimate the depth of the scene at every pixel of the image, not only at a few relevant locations. Albeit dense reconstruction leads to better results, the risks involved in understanding, planning and implementing it in time make it an unfeasible approach for the core of this project. Due to the use of sparse reconstruction, the results of this project are expected to be noisier than those of ARC3D. 
+ARC3D bases its computation on the notion of dense reconstruction\cite{tingdahl_lncs_11}. This is more powerful than the approach described in the following chapters of this document because it aims to estimate the depth of the scene at every pixel of the image, not only at a few relevant locations. Although dense reconstruction leads to better results, the risks involved in understanding, planning and implementing it in time make it an infeasible approach for the core of this project. Due to the use of sparse reconstruction, the results of this project are expected to be noisier than those of ARC3D. 
 
 
 \chapter{Preparation}
-The original aims of this project, as presented in the project proposal, amount to a very broad description of the task to be undertaken. However, the successful completion of a challenging project of this scale requires a great deal of careful planning. This chapter presents some of the aspects which factored into planning the execution of a system which aims to reconstruct the scene from a sequence of images.\\
+The original aims of this project, as presented in the project proposal, amount to a very broad description of the task to be undertaken. However, the successful completion of a challenging project of this scale requires a great deal of careful planning. This chapter presents some of the aspects which were factored into planning the execution of the proposed system.\\
 \linebreak
-The chapter starts off by identifying the requirements of the system, then it proceeds to describe the structure of the project as it has developed from these requirements. What follows is a description of the tools and methodologies involved in the development of this project. 
+The chapter starts off by identifying the requirements of the system, then it proceeds to describe the structure of the project developed from these requirements. What follows is a description of the tools and methodologies involved in the development of this project. 
 
 %\subsection{Stereo vision and stereo correspondence}
 %Stereo vision is the process of recovering depth information from a pair of 2D %projections of the a scene as seen from two different viewpoints.\\ 
 %\textit{Although in this project more than two viewpoints will be used, the task of recovering 3D data from multiple 2D projections is difficult for the same fundamental reason as stereo vision is. For simplicity, this section will analyze the difficulties which arise from attempting to recover a 3D scene from two images.} \\
 
 \section{System Overview and Requirements Analysis}
-This section aims to identify the requirements which must be fulfilled by any successful implementation of the system described in this document.\\
+This section aims to identify the requirements which must be fulfilled by a successful implementation of the system described in this document.\\
 In addition to serving as a criterion in deciding whether the project is successful or not, such an analysis is an inherent part of the early stages of the project because it provides a base for planning the implementation and for structuring the system.\\
 \linebreak
 This section presents a broad overview of the system and then proceeds to identify the functional requirements of the project.
 \subsection{Overview of the Project}
 In order to achieve the purposes of this project, a working system which constructs a three-dimensional model based on a sequence of images must be put together. \\
-After analyzing the input images, the system aims to build a set of points which are considered to be lying on the surface of the input object. These points are then connected together in order to construct a polygon mesh. The newly-constructed surface is then exported as a \textbf{PLY} file.\\
+After analyzing the input images, the system aims to build a set of points which are considered to be lying on the surface of the input object. These points are then connected together in order to construct a polygon mesh. The newly-constructed surface is then exported as a \textbf{PLY}\footnote{PLY is a file format for storing 3D models described as a set of polygons.} file.\\
 
 \subsection{Functional Requirements}
 \begin{samepage}
-Table 2.1 summarizes the goals of this project. The information displayed in this table is in conformity with what was presented in the project proposal, but it provides a lower-level overview of the functional components of the system.\\
-For each of the functional components listed above the table specifies the priority within the system and provides an estimate of the difficulty and risk expected to arise in the implementation of that component. Because there is a substantial amount of risk involved in carrying out this project, careful consideration was given to estimating the risk of each functional unit. The main  factors which were taken into account in determining the risk of a task are:
+Table 2.1 summarizes the goals of this project. The information displayed in this table conforms with what was presented in the project proposal, and it provides a lower-level overview of the functional components of the system.\\
+For each of the functional components listed above, the table specifies the priority within the system and provides an estimate of the difficulty and risk expected to arise in the implementation of that component. Because there is a substantial amount of risk involved in carrying out this project, careful consideration was given to estimating the risk of each functional unit. The main  factors which were taken into account in determining the risk of a task are:
 \begin{itemize}
 \item whether the task is ill-posed. For reasons presented in the introductory chapter of this document, the main source of risk in this project comes from the ill-posed nature of the underlying problem.
 \item whether the outcome is expected to need further refinement. Post-processing is commonly used in order to correct the result of an error-prone computation.
-\item whether it involves solving complicated mathematical equations. I consider this to be a source of risk because typically such computations are harder to debug and imply a loss of precision.
+\item whether it involves solving complex mathematical equations. I consider this to be a source of risk because typically such computations are harder to debug and imply a loss of precision.
 \end{itemize}     
 \begin{center}
 \begin{table}
@@ -229,16 +229,17 @@ Add functionality to export the surface as .PLY                         &   Low 
 \end{table}
 \end{center}
 \end{samepage}
-It is important to note that this system only aims to build the polygon mesh of the surface. Therefore I regarded capturing the texture and shading of the scene non-requirement. The system can be extended later to include this functionality.\\
-I am also planning to build the system as one or multiple console applications, hence discarding the need to build a user interface. The applications will display a help message containing information about the tool's intended purpose and usage.
+It is important to note that this system only aims to build the polygon mesh of the surface. Therefore, I regarded capturing the texture and shading of the scene a non-requirement. The system can be extended later to include this functionality.\\
+I am planning to build the system as one or multiple console applications, hence discarding the need to build a user interface. The applications will display a help message containing information about the tool's intended purpose and usage.\\
+A successful implementation must comply with all of the non-optional requirements presented in this section.
 
 \section{The Main Components of the System}
-After a careful evaluation of its required functionality, the system was split into these logically-different entities:
+After a careful evaluation of its required functionality, the system was split into these distinct entities:
 \begin{itemize}
 \item \textbf{Image Generator}
 Given a three-dimensional object as input, the picture generator produces a specified number of digital pictures of that object, along with the corresponding locations from which the pictures have been taken. 
 \item \textbf{Point Cloud Constructor}
-The point cloud constructor aims to generate points which lie on the surface of the input model in the three-dimensional space. 
+The point cloud constructor aims to generate points which lie on the surface of the input model in three-dimensional space. 
 \item \textbf{Surface Reconstructor}
 The surface reconstructor converts the point cloud constructed by the previous module into a triangular mesh. The resulting representation of the surface is exported into a \textit{.PLY} file.
 \item \textbf{Evaluation Module}
@@ -248,7 +249,7 @@ The purpose of the evaluation module is to analyze the performance of the point 
 \centerline{\includegraphics[scale=0.7]{figs/overview.png}}
 \caption{An overview of the system}
 \end{figure}
- 
+The interactions between these modules are illustrated in Figure 2.1.
 
 \section{Dependency Analysis}
 To effectively plan the development of the system, I analyzed the dependencies between the functional components identified in the previous sections. Since the image generator and the surface reconstructor have not been decomposed into lower-level units up to this point, this section will focus only on the central part of this project, the point cloud constructor.\\
@@ -264,14 +265,14 @@ Figure 2.2 reveals the high degree of interdependence between the different unit
 \section{Choice of Tools}
 
 \subsection{Programming Languages}
-The main programming language used throughout this project is C++. This choice is motivated by the need to take full advantage of computer vision and computational geometry open-source l7ibraries such as \emph{OpenCV}, \emph{PCL} or \emph{GCAL} which are all written in C++. Another advantage of using C++ for implementing a system which deals with complex computations on images is its characteristic execution speed.\\
+The main programming language used throughout this project is C++. This choice is motivated by the need to take full advantage of computer vision and computational geometry opensource libraries such as \emph{OpenCV}, \emph{PCL} or \emph{GCAL} which are all written in C++. Another advantage of using C++ for implementing a system which deals with complex computations on images is its characteristic execution speed.\\
 I only used C/C++ before in order to implement small practice programs and for implementing the ticks in part IB. Consequently, I needed to adjust to writing C++ programs in an object-oriented fashion and to using features newly introduced in C++11 or in C++14.\\
 \linebreak
 Python was chosen for implementing the picture generator and parts of the evaluation module. The main reasons for doing so are library availability and the convenience with which one can write small scripts for interacting with C++ binaries.\\
 I had no experience with Python before taking on this project.   
 
 \subsection{Libraries and other external software}
-As mentioned before, this project relies heavily on libraries which provide working implementations of the tasks considered to be outside the purposes of this project, or just unfeasible to implement from scratch in the given period of time. Figure 2.3 shows the libraries (and the standalone software) which helped bring about the successful completion of the project. The advantages and intricacies which accompanied the use of some of these libraries will be described in more detail in the implementation chapter, where they can be better put into context. The more important ones, however, are introduced in the paragraphs to follow:
+As mentioned earlier, this project relies heavily on libraries which provide working implementations of the tasks considered to be outside of the purposes of this project, or just infeasible to implement from scratch in the given period of time. Figure 2.3 shows the libraries (and the standalone software) which helped bring about the successful completion of the project. The advantages and intricacies which accompanied the use of some of these libraries will be described in more detail in the implementation chapter, where they can be better put into context. The more important libraries and tools, however, are introduced in the paragraphs to follow:
 
 \begin{figure}
 \centerline{\includegraphics[scale=0.7]{figs/libraries1.png}}
@@ -286,7 +287,7 @@ Another great advantage of \textbf{POV-Ray}\footnote{\url{http://www.povray.org/
 Convenience factors aside, \textbf{POV-Ray} is one of the highest-quality free ray tracers available.\footnote{\url{http://hof.povray.org/}}
 
 \subsubsection{OpenCV}
-A core task of the proposed system is solving the \emph{stereo correspondence problem}\footnote{Stereo correspondence = the problem of determining the corresponding parts between two images}. The most commonly used solution for this problem is the \emph{feature-based} approach:
+A core task of the proposed system is solving the \emph{stereo correspondence problem}\footnote{Stereo correspondence is the problem of determining the corresponding parts between two images}. The most commonly used solution for this problem is the \emph{feature-based} approach:
 \begin{itemize}
 \item \textbf{detect features:} In each of the two images, find the key locations (or features) which are likely to be relevant in determining a correspondence. In scale-invariant feature detection, the features are defined as the positions of local maxima and minima resulted from convolving the grayscale image with the \emph{Difference of Gaussians} kernel. This operation is performed for a multitude of scale parameters $\sigma$ in order to detect features of different sizes.
 \item \textbf{extract feature descriptors:} For each of these features, extract relevant information about the surrounding area which can be used to identify similar feature points.
@@ -299,16 +300,16 @@ A core task of the proposed system is solving the \emph{stereo correspondence pr
 \emph{The Point Cloud Library}, or PCL\footnote{\url{http://pointclouds.org/}}, contains a vast collection of state-of-the-art algorithms for processing 2D or 3D sets of points. It consists of several modular libraries (filters, surface, kdtree etc.) which have proven useful for improving the results of different parts of this project. The surface reconstruction module, in particular, is heavily reliant on the algorithm for fast triangulation of unordered point clouds\cite{Marton09ICRA} provided by PCL\footnote{\url{http://pointclouds.org/documentation/tutorials/greedy_projection.php}}.
 
 \subsubsection{Qhull}
-One of the metrics used in the evaluation module in order to estimate the accuracy of the result is the volume of the convex hull of the resulting point cloud (see the chapter 4).\\
+One of the metrics used in the evaluation module in order to estimate the accuracy of the result is the volume of the convex hull of the resulting point cloud (see chapter 4).\\
 Although constructing a tool for computing the convex hull of a set of 3D points is not a particularly difficult task (my implementation based on Franco Preparata and Ian Shamos's book on computational geometry{Preparata} can be found at \url{https://github.com/ilinca-sorescu/convex-hull}), a more suitable alternative for evaluating the point cloud constructor is to use \emph{qhull}\footnote{\url{http://www.qhull.org/}} instead because it handles the roundoff errors which arise from doing floating point arithmetic and it provides various options for dealing with precision errors in estimating the volume of the resulting convex hull. 
 
 \subsection{The programming environment}
-The development was carried out on my personal computer running Arch Linux(rolling release).\\
+The development was carried out on my personal computer running Arch Linux (rolling release).\\
 The programming environment used consists of the \textit{Vim} text editor enhanced with several plug-ins for boosting productivity. The most important of these are \textit{syntastic}\footnote{\url{https://github.com/scrooloose/syntastic}} for highlighting errors directly inside the text editor and \textit{youcompleteme}\footnote{\url{https://github.com/Valloric/YouCompleteMe}} which provides as-you-type semantic code completion.\\
 Other command-line tools used for compiling and debugging the code include g++, gdb and the IPython console. The build system used for C/C++ source code will be explored in more detail in the implementation chapter.
 
 \subsection{Version control}
-The use of a version control system is crucial for the successful completion of a project of this scale. I used \emph{Git} in order to keep track of the changes that occurred in the source code, configuration files, and in the \LaTeX\  source of this document. The main reasons for choosing this particular version control system are the ease with which it can be coupled with a remote repository and my own experience with it.
+The use of a version control system is crucial for the successful completion of a project of this scale. I used \emph{Git} in order to keep track of the changes that occurred in the source code, configuration files, and in the \LaTeX\  source of this document. The main reasons for choosing this particular version control system are the ease with which it can be coupled with a remote repository as well as my familiarity with it.
 
 \subsection{Backup}
 A remote repository was assembled to back up the latest stable version in case of a crash. The \emph{Dropbox} file synchronization service was used to ensure the full recovery of the files which were not tracked by Git. One of the great advantages of this approach to backing up files is that it uploads all of the changes automatically, without having to rely on the user to explicitly do so.  
@@ -326,15 +327,15 @@ A remote repository was assembled to back up the latest stable version in case o
 \section{Software Engineering Techniques}
 Although the nature of Part II projects promotes the use of the \emph{Waterfall Development Model}, the components of this system which are associated with a high degree of risk would benefit from the rapid prototyping characteristic to \emph{iterative design}. One way to make the most of both paradigms is to adopt the \emph{Incremental Build Model}:\\
 \begin{adjustwidth}{0.7cm}{}
-The process begins by analyzing the requirements dividing the task into the loosely-coupled modules (or 'builds') defined above (see sections 2.2 and 2.3). Each of the modules go independently through the stages of a waterfall-like model: they are designed, implemented and then tested and evaluated accordingly. If the result of the evaluation is not yet satisfactory for a given build, it will go through all of the stages again until adequate results are achieved.\\
+The process begins by analyzing the requirements dividing the task into the loosely-coupled modules (or \enquote*{builds}) defined above (see sections 2.2 and 2.3). Each of the modules go independently through the stages of a waterfall-like model: they are designed, implemented and then tested and evaluated accordingly. If the result of the evaluation is not yet satisfactory for a given build, it will go through all of the stages again until adequate results are achieved.\\
 \end{adjustwidth} 
-This methodology provides a sensible approach for implementing the proposed system because even though the main objectives are clearly set right from the beginning (thus maximizing the probability of meeting the success criteria) some initially under-specified implementation details are more flexible and can change as a result of the analysis done at the previous iterations. This aids the exploratory nature of the point cloud construction module in particular.  
+This methodology provides a sensible approach for implementing the proposed system, because even though the main objectives are clearly set from the beginning (thus maximizing the probability of meeting the success criteria) some initially under-specified implementation details are more flexible and can change as a result of the analysis done at the previous iterations. This aids the exploratory nature of the point cloud construction module in particular.  
 
 \section{Summary}
 This chapter provided a description of the intended outcome of this project and of the choices made prior to implementation in order to ensure its successful completion. It outlined the main requirements and explained how they were refined into a high-level structure of the system, explained the arguments which sustain the choice of several tools and programming languages and provided a description of a suitable implementation approach.
 \chapter{Implementation}
 
-The aim of this chapter is to acquaint the reader with the internal workings of the system by providing an in-depth description of the techniques used in order to add functionality or to improve the accuracy and overall performance of the system.\\
+The aim of this chapter is to acquaint the reader with the operation of the system by providing an in-depth description of the techniques used in order to add functionality or to improve the accuracy and overall performance of the system.\\
 \linebreak
 As mentioned in the previous chapter, the system is comprised of four major parts:
 \begin{itemize}
@@ -343,19 +344,20 @@ As mentioned in the previous chapter, the system is comprised of four major part
 \item \textbf{Surface Reconstructor}
 \item \textbf{Evaluation Module}
 \end{itemize}
-Each of the following sections will focus on one of these modules. 
-
+Each of the following sections will focus on the implementation of each of these modules in turn.\\
+\linebreak
+A large amount of the work done in this project was theoretical; hence I will provide the most important derivations involved in the implementation of the proposed system. 
 
 \section{The Image Generator}
 As described in the previous section, this module produces a sequence of digital snapshots of a given three-dimensional object as seen from different locations in space. \\
-Perhaps the most important aim of this project is to decide whether it would be practical to implement a low-cost system for creating digital representations of real-life objects based on pictures instead of using three-dimensional scanners. Therefore it might seem a bit odd that such a module is needed at all as it is restricting the system's interaction with the outside world. This section aims to explain why such an input generator is used and provide a detailed overview of its intended usage. 
-\subsection{The role it plays in the system}
-Complex measurements and calculations must be performed in order to determine the accuracy with which the output of the system resembles the real-life object used as input. To avoid this complexity, the input of the system was changed from a sequence of photographs of an object acquired using a hand-held camera to a sequence of digital snapshots of a preexisting three-dimensional model. This is a natural first-step to be taken in deciding whether such a system would yield a reliable representation because it enables one to evaluate the results by comparing the output directly to the input model. More on this topic in the evaluation chapter.\\
+One of the aims of this project is to decide whether it would be practical to implement a low-cost system for creating digital representations of real-life objects based on pictures instead of using three-dimensional scanners. Therefore it might seem that such a module is restricting the system's interaction with the outside world. This section aims to explain why such an input generator is needed and provide a detailed overview of its intended usage. 
+\subsection{The role the image generator plays in the system}
+Complex measurements and calculations must be performed in order to determine the accuracy with which the output of the system resembles the real-life object used as input. To avoid this complexity, the input of the system was changed from a sequence of photographs of an object acquired using a hand-held camera to a sequence of digital snapshots of a preexisting three-dimensional model. This is a natural first-step to be taken in deciding whether such a system would yield a reliable representation, because it enables me to evaluate the results by comparing the output directly to the input model. More on this topic in the evaluation chapter.\\
 Here are some additional advantages of using digital snapshots instead of photos: 
 \begin{enumerate}
-\item there is no need to worry about camera calibration.
+\item it avoids the need for camera calibration, thus allowing the construction of a more simplified prototype.
 \item the configuration of the scene is very easy to change (e.g.\ the location and orientation of the light sources, the number of snapshots taken, etc.). This is a very important advantage in determining the limiting conditions in which the output is accurate.
-\item the input generator can produce a lot of snapshots effortlessly and record the locations from which they were taken.
+\item the input generator can produce a lot of snapshots quickly and record the locations from which they were taken.
 \item no human assistance is needed in evaluating the system.
 \end{enumerate}
 The system can be extended to take real photographs as input simply by adding a calibration module.
@@ -377,7 +379,7 @@ This module is executed as a console application. The user must specify the foll
 \end{itemize}
 
 \subsection{Language and Libraries}
-The image generator was implemented using Python. The main factor involved in this decision was the availability of a lightweight library for dealing with templates. I used \textbf{Mako} (\url{http://www.makotemplates.org/}) in order to create \textit{.pov} files from the template \textit{povTemplate.mako}: 
+The image generator was implemented using Python. This language choice is justified by the fact that it enabled me to use a lightweight library for dealing with templates. I used \textbf{Mako} (\url{http://www.makotemplates.org/}) in order to create \textit{.pov} files from the template \textit{povTemplate.mako}: 
 
 \begin{verbatim}
 #include "${filename}"
@@ -396,7 +398,7 @@ The \textit{.inc} file which defines the input model is included in the first li
 I chose to use this approach because it is a painless and straightforward way to control the location of the camera and the light conditions of the scene regardless of the input model used. 
 
 \subsection{Effect and Output}
-Given the name of the input file, the number of snapshots to be produced(\textbf{N}) and the radius of the sphere considered(\textbf{R}), the image generator determines \textbf{N} points uniformly distributed on the surface of the sphere of radius \textbf{R} centered in origin. These \textbf{N} points represent the locations from which the snapshots will be taken. For each of these camera locations a new \textit{.pov} file will be generated from the \textbf{Mako} template as described in the previous section. Note that the camera is always pointing towards the origin. \\
+Given the name of the input file, the number of snapshots to be produced(\textbf{N}) and the radius of the sphere considered(\textbf{R}), the image generator determines \textbf{N} points uniformly distributed on the surface of the sphere of radius \textbf{R} centered at the origin. These \textbf{N} points represent the locations from which the snapshots will be taken. For each of these camera locations a new \textit{.pov} file will be generated from the \textbf{Mako} template as described in the previous section. Note that the camera is always pointing towards the origin. \\
 The \textit{.pov} files are rendered using \textbf{POV-Ray} to create the desired snapshots.
 
 
@@ -408,16 +410,16 @@ The \textit{.pov} files are rendered using \textbf{POV-Ray} to create the desire
 \section{The Point Cloud Constructor}
 Given a sequence of snapshots, the point cloud constructor finds correspondences between pairs of snapshots and uses these correspondences to determine the three-dimensional position of points located on the surface of the object. \\
 \linebreak
-As specified in the preparation chapter, a primitive prototype has been implemented early on in the development of the system. This section starts by presenting the principles and techniques used for implementing this basic prototype, then it proceeds to explain the measures which were taken to improve on these early results.
+As mentioned in the preparation chapter, a primitive prototype has been implemented early on in the development of the system. This section starts by presenting the principles and techniques used for implementing this basic prototype, then proceeds to explain the measures which were taken to improve on these early results.
 
 \subsection{A Basic Prototype}
-A prototype was assembled to integrate primitive implementations in order to fulfill the main functional requirements which are part of the point cloud constructor. This prototype is characterized by its disregarding of accuracy. It attempts to create a reconstruction from only two input images. \\
+A prototype was assembled to integrate primitive implementations in order to fulfill the main functional requirements which are part of the point cloud constructor. As this is a proof-of-concept prototype, achieving a high accuracy is not an objective. Furthermore, it attempts to create a reconstruction from only two input images. \\
 Figure 3.1 gives an outline of the computation.
 
 \subsubsection{Importing the Images}
 For each of the snapshots used as input a correspondent instance of the \emph{Image} class is created. These instances contain the relevant information characteristic to a single view:
 \begin{itemize}
-\item The location (in world coordinates) of the center of the camera. This is information is provided by the image generator.
+\item The location (in world coordinates) of the center of the camera. This information is provided by the image generator.
 \item The features and descriptors. The \emph{OpenCV} interfaces \emph{FeatureDetector} and \emph{DescriptorExtrator} define easy-to-use methods for dealing with these.
 \end{itemize}
 
@@ -426,7 +428,7 @@ For each of the snapshots used as input a correspondent instance of the \emph{Im
 \caption{The public methods of the \emph{Image} class.}
 \end{figure}
 
-In a later prototype, the \emph{Image} class will be extended further to include the camera matrix. In this respect, the basic prototype is structured differently because it makes use of the simplifications which arise from having only two views. The reasons for this change will be presented later in this chapter.
+In a later prototype, the \emph{Image} class will be extended further to include the camera matrix. In this respect, the basic prototype is structured differently, because it makes use of the simplifications which arise from having only two views. The reasons for this change will be presented later in this chapter. The resulting structure of the \emph{Image} class is illustrated in Figure 3.2.
 
 \subsubsection{The Camera Matrix}
 In computer vision a \emph{camera} is defined as a mapping from a 3D space (the object space) to a 2D space (the image)\cite[p.153]{Hartley+2003}.\\ The camera model used throughout this project is the \emph{basic pinhole camera model}.
@@ -463,9 +465,9 @@ In computer vision a \emph{camera} is defined as a mapping from a 3D space (the 
 \caption{The pinhole camera model: X(in the object space) is represented in the image at location y(in image coordinates).}
 \end{center}
 \end{figure}
-In this model, the camera is placed at the origin, facing the positive z-axis (also referred to as the principal axis). The image plane is at a distance \emph{f} in front of the camera, perpendicular to the principal axis. This camera maps points from the object space to the intersection between the image plane and the line connecting the origin to that point. This set-up is depicted in Figure 3.2.\\
+In this model, the camera is placed at the origin, facing the positive z-axis (also referred to as the principal axis). The image plane is at a distance \emph{f} in front of the camera, perpendicular to the principal axis. This camera maps points from the object space to the intersection between the image plane and the line connecting the origin to that point. This set-up is depicted in Figure 3.3.\\
 \linebreak
-The relation between 3-space and 2-space, as defined by the pinhole camera, can be easily modeled using the 3X4 camera matrix $\mathbf{C_{0}}$: 
+The relation between 3D-space and 2D-space, as defined by the pinhole camera, can be easily modeled using the 3x4 camera matrix $\mathbf{C_{0}}$: 
 \begin{equation}
 \mathbf{y = C_{0}X}
 \end{equation}
@@ -478,17 +480,17 @@ f & 0 & 0 & 0 \\
 Assuming that $f = 1$, $\mathbf{C_{0}} = \left ( \begin{array} {c|c} \mathbf{I} & \mathbf{0} \end{array} \right )$
 \\
 \linebreak
-More often than not, the 3D locations are not specified in a camera-centric coordinate system but in an arbitrary one, in world coordinates. A more general form of equation (3.1) relates $y$ to $X'$, the correspondent in homogeneous world coordinates of point $X$:
+More often than not, the 3D locations are not specified in a camera-centric coordinate system but in an arbitrary one, in world coordinates. A more general form of equation (3.1) relates $y$ to $X'$, the correspondent of point $X$ in world coordinates:
 \begin{equation}
 \mathbf{y = CX'},\hspace{20pt} \mathbf{C} = \left ( \begin{array} {c|c} \mathbf{R} & \mathbf{t} \end{array} \right )\\
-\end{equation} where $\mathbf{R}$ is a 3x3 rotation matrix and $\mathbf{t}$ is a translation column vector. For the derivation of equations 3.1 and 3.2 from basic principles of the pinhole camera model see Appendix C.\\
+\end{equation} where $\mathbf{R}$ is a 3x3 rotation matrix and $\mathbf{t}$ is a translation column vector. For the derivation of equations (3.1) and (3.2) from basic principles of the pinhole camera model see Appendix C.\\
 
 \subsubsection{Using OpenCV to Find the Camera Matrix}
 \emph{OpenCV} provides a function for automatically extracting the \textbf{fundamental matrix} from a set of matching features. The fundamental matrix \textbf{F} relates positions in the first image (\textbf{x}) to their corresponding position in the second image (\textbf{x'}):
 \begin{equation}
 \mathbf{x'^TFx} = 0
 \end{equation}
-The camera matrix of the first view is assumed to be of the canonical form $\mathbf{C}=\left ( \begin{array} {c|c} \mathbf{I} & \mathbf{0} \end{array} \right )\\ $. The camera matrix of the second view can then be deduced from the fundamental matrix \cite[p.~129]{baggio2012mastering}. 
+The camera matrix of the first view is assumed to be of the canonical form $\mathbf{C}=\left ( \begin{array} {c|c} \mathbf{I} & \mathbf{0} \end{array} \right ) $. The camera matrix of the second view can then be deduced from the fundamental matrix \cite[p.~129]{baggio2012mastering}. 
 
 \subsubsection{Triangulation}
 The term \emph{triangulation} denotes the process of determining the third vertex of a triangle by means of intersecting two of the lines which form the edges of the triangle.\\
@@ -499,21 +501,32 @@ The \textbf{Linear-LS}\cite[p.~8]{Hartley96triangulation} method for solving the
 \mathbf{AX} = \mathbf{B} 
 \end{equation}
 where \textbf{A} and \textbf{B} are defined as follows:
+\newenvironment{texteq}{%
+    \begin{equation}%
+        \begin{minipage}{0.9\linewidth}%
+}{%
+        \end{minipage}%
+    \end{equation}%
+    \ignorespacesafterend%
+}
+\begin{texteq}
 \begin{verbatim}
-  Matx43d A(p1.x*C1(2, 0)-C1(0, 0), p1.x*C1(2, 1)-C1(0, 1), p1.x*C1(2, 2)-C1(0, 2),
-            p1.y*C1(2, 0)-C1(1, 0), p1.y*C1(2, 1)-C1(1, 1), p1.y*C1(2, 2)-C1(1, 2),
-            p2.x*C2(2, 0)-C2(0, 0), p2.x*C2(2, 1)-C2(0, 1), p2.x*C2(2, 2)-C2(0, 2),
-            p2.y*C2(2, 0)-C2(1, 0), p2.y*C2(2, 1)-C2(1, 1), p2.y*C2(2, 2)-C2(1, 2));
+Matx43d A(p1.x*C1(2, 0)-C1(0, 0), p1.x*C1(2, 1)-C1(0, 1), p1.x*C1(2, 2)-C1(0, 2),
+          p1.y*C1(2, 0)-C1(1, 0), p1.y*C1(2, 1)-C1(1, 1), p1.y*C1(2, 2)-C1(1, 2),
+          p2.x*C2(2, 0)-C2(0, 0), p2.x*C2(2, 1)-C2(0, 1), p2.x*C2(2, 2)-C2(0, 2),
+          p2.y*C2(2, 0)-C2(1, 0), p2.y*C2(2, 1)-C2(1, 1), p2.y*C2(2, 2)-C2(1, 2));
 
-  Matx41d B(-p1.x*C1(2, 3)+C1(0, 3),
-            -p1.y*C1(2, 3)+C1(1, 3),
-            -p2.x*C2(2, 3)+C2(0, 3),
-            -p2.y*C2(2, 3)+C2(1, 3));
+Matx41d B(-p1.x*C1(2, 3)+C1(0, 3),
+          -p1.y*C1(2, 3)+C1(1, 3),
+          -p2.x*C2(2, 3)+C2(0, 3),
+          -p2.y*C2(2, 3)+C2(1, 3));
+          
 \end{verbatim}
+\end{texteq}
 Here, \textbf{C1} and \textbf{C2} are the camera matrices of the two views considered.
 
 \begin{proof}
-Using equation 3.2 and the homogeneous form of $p1$: \\
+Using equation (3.2) and the homogeneous form of $p1$: \\
 \begin{center}
 $\begin{bmatrix}
 	uw \\
@@ -563,24 +576,24 @@ z \\
 \end{bmatrix}$ and then eliminating the now superfluous column of \textbf{A}, the system of equations becomes:
 \begin{center}
 	\textbf{A}\textbf{X} = \textbf{B}
-\end{center} for the \textbf{A} and \textbf{B} defined above.
+\end{center} for the \textbf{A} and \textbf{B} defined in (3.5).
 \end{proof}
 Since \textbf{A} is not invertible its pseudo-inverse must be computed in order to determine \textbf{X}. The function \emph{invert} from \emph{OpenCV} provides an easy way to deal with computing the pseudo-inverse of non-quadratic matrices by using the \emph{singular value decomposition}\cite[p.~82]{Suli+2003} factorization method.\\
 \linebreak
-Although suitable for a basic prototype, the solution for the triangulation problem described in this section is generally not recommended for constructing a projective reconstruction. Its main shortcoming comes from its inability to deal with noise: a central assumption made by this method is that the two rays will intersect. Albeit this should be the case in ideal conditions, it is not generally true of two lines laying in 3-space. Since any amount of noise could cause the two rays to meet at infinity, a more error-resilient approach should be adopted. Such a method will be presented later in this chapter.
+Although suitable for a basic prototype, the solution for the triangulation problem described in this section is generally not recommended for constructing a projective reconstruction. Its main shortcoming comes from its inability to deal with noise: a central assumption made by this method is that the two rays will intersect. Although this should be the case in ideal conditions, it is not generally true of two lines in 3D. Since any amount of noise could cause the two rays to meet at infinity, a more error-resilient approach should be adopted. Such a method will be presented later in this chapter.
 
 
 \subsection{Multiple-View Reconstruction}
-The techniques described so far assumed the use of only two input images. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views and to present a solution for this type of reconstruction.
+The techniques described so far assumed the use of two input images only. This section stands to identify the intricacies which arise from constructing a 3D model from multiple views and to present a solution for this type of reconstruction.
 
-\subsubsection{Camera Matrix for a "Look-at" Camera}
-Thus far, the point cloud constructor yielded an up-to-scale representation of the input object. This has to do with the way in which the camera matrix is constructed: the first view is implicitly associated with the canonical camera matrix; the camera matrix for the second view is then determined in relation with the camera pose for the first view. The camera matrices computed this way are interdependent, and they introduce a scaling factor associated with each pair of images. This becomes problematic when the reconstruction is made from more than two images because each individual pair will give raise to a different scaling factor. \\
-This section presents a method of deducing the camera matrix directly from the camera pose and the viewing direction. Since it is very convenient to describe a camera in this "look-at" fashion, this approach is extensively used in 3D graphics, including as part of the \emph{OpenGL} API.\\
+\subsubsection{Camera Matrix for a \enquote{Look-at} Camera}
+Thus far, the point cloud constructor yielded an up-to-scale representation of the input object. This has to do with the way in which the camera matrix is constructed: the first view is implicitly associated with the canonical camera matrix; the camera matrix for the second view is then determined in relation to the camera position for the first view. The camera matrices computed this way are interdependent, and they introduce a scaling factor associated with each pair of images. This becomes problematic when the reconstruction is made from more than two images because each individual pair will give rise to a different scaling factor. \\
+This section presents a method of deducing the camera matrix directly from the camera position and the viewing direction. Since it is very convenient to describe a camera in this \enquote{look-at} fashion, this approach is extensively used in 3D graphics, and as part of the \emph{OpenGL} API.\\
 \linebreak
-It was previously shown that the camera matrix has the form $C = (R | t)$, where every row of $R$ defines the direction of one axis of the camera as seen from the perspective of the world. This can be deduced from the information mentioned above:
+It was previously shown that the camera matrix has the form $C = (R\ |\ t)$, where every row of $R$ defines the direction of one axis of the camera as seen from the perspective of the world. The following can be deduced from the information above:
 \begin{itemize}
-\item \textbf{the z-axis:} As defined in the pinhole model, the z-axis points toward the target point. In this project the target points is assumed to be the origin, so $\mathbf{z} = cameraPose$. 
-\item \textbf{the x-axis:} The "look-at" assumes no rotation around the z-axis of the camera. As a result, the y-axis of the camera is always coplanar to the target direction and the y-axis of the world. Therefore, $\mathbf{•}hbf{x} = \mathbf{z} \times (0, 1, 0)$.
+\item \textbf{the z-axis:} As defined in the pinhole model, the z-axis points towards the target point. In this project the target points is assumed to be the origin, so $\mathbf{z} = cameraPosition$. 
+\item \textbf{the x-axis:} The \enquote{look-at} model assumes no rotation around the z-axis of the camera. As a result, the y-axis of the camera is always coplanar with the target direction and the y-axis of the world. Therefore, $\mathbf{x} = \mathbf{z} \times (0, 1, 0)$.
 \item \textbf{the y-axis:} must be perpendicular to both the x-axis and the z-axis. $\mathbf{y} = \mathbf{x} \times \mathbf{z}$.
 \end{itemize}
 The equations presented above assume normalization after every step.\\
@@ -591,7 +604,7 @@ Now $R = \begin{bmatrix}
 \mathbf{z} \\
 \end{bmatrix}$, and the translation vector can easily be obtained from the equation
 \begin{equation}
-\mathbf{t} = -R \cdot cameraPose
+\mathbf{t} = -R \cdot cameraPosition
 \end{equation}
 $\qedhere$
 
@@ -602,15 +615,15 @@ $\qedhere$
 \caption{Motivation for minRatio: C1 and C2 are the locations of the camera for two different images. An object gets rendered in the second image at location \emph{x}. When an error (in red) in determining the position of \emph{x} is introduced, it results in a distance equal to the magnitude of the segment (object, P) between the real and computed 3D coordinates of the object. This distance increases dramatically when C2 is placed very close to C1. The two red segments have the same length and C2'x = C2x.}
 \end{center}
 \end{figure}
-As is case of stereo vision, 3D reconstruction is performed by determining similarities between a pair of images in order to infer the depth at various locations in the scene. When more than two images are provided, the result consists of the points determined by analyzing multiple pairs. The ideal method of selecting pairs of images from a set maximizes the number of matching features taken into account, while avoiding to pair up dissimilar images which are more likely to generate erroneous data.\\
+As is the case of stereo vision, 3D reconstruction is performed by determining similarities between a pair of images in order to infer the depth at various locations in the scene. When more than two images are provided, the result consists of the points determined by analyzing multiple pairs. The ideal method of selecting pairs of images from a set maximizes the number of matching features taken into account, while avoiding pairing up dissimilar images which are more likely to generate erroneous data.\\
 \linebreak
 Initially every image was paired with its K-closest neighbors. Empirical evidence suggested that if the two images were taken from a very close distance to each other the generated noise increased dramatically. Figure 3.4 illustrates why this is the case. \\
-In light of these observations a new method was proposed: two images are paired together only if the distance between the cameras belongs to the interval $[minRatio \cdot R, maxRato \cdot R]$, where $minRatio$ and $maxRatio$ are two parameters whose default values are 0.04 and 0.65 and $R$ is the radius of the sphere from which the pictures were taken (the distance from the position of the camera to the origin.
+In light of these observations I adopted a new approach: two images are paired together only if the distance between the cameras belongs to the interval $[\ minRatio \cdot R,\ maxRatio \cdot R\ ]$, where $R$ is the radius of the sphere from which the pictures were taken (the distance from the position of the camera to the origin). The values of $minRatio$ and $maxRatio$ are set by the user. They can be empirically adjusted to give the best results for a specific input model. An example of such a derivation can be found in the Evaluation chapter.\\
 
 \subsection{Refining the Reconstruction and Improving Performance}
-As mentioned right from the beginning of this document, the proposed system was expected to be highly error-prone. Consequently, a software engineering paradigm which allowed for repeatedly adding improvements to the initial design has been employed. This section aims to analyze these improvements.
+As mentioned right from the beginning of this document, the proposed system was expected to be highly error-prone. Consequently, a software engineering paradigm which allowed for repeatedly adding improvements to the initial design has been employed. This section aims to describe these improvements.
 \subsubsection{Epipolar Filtering}
-Unlike the other improvements described in this section, the epipolar filtering is critical to an accurate reconstruction. The reason why it is not considered to be part of the basic prototype described above is that epipolar filtering is not essential to the integration of the main components of this module. In contrast, it adds a great deal complexity to what was designed to be a simple first iteration in the incremental development model.\\
+Unlike other improvements described in this section, the epipolar filtering is critical for an accurate reconstruction. The reason why it is not considered to be part of the basic prototype described above is that epipolar filtering is not essential to the integration of the main components of this module. In contrast, it adds a great deal of complexity to what was designed to be a simple first iteration in the incremental development model.\\
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.35]{figs/before_epi.png} \\
@@ -619,9 +632,9 @@ Unlike the other improvements described in this section, the epipolar filtering 
 \caption{Before and after epipolar filtering}
 \end{center}
 \end{figure}\\
-Epipolar geometry is the geometry of two views. It aims to describe, for any position in the first view, the region in the second view where its corresponding position might reside. In this project, this knowledge is used in order to detect which of the presumably matching pairs returned by the feature matcher make geometric sense. Figure 3.3 seeks to give the reader an impression of the vast percentage of erroneous correspondences identified by the feature matcher.\\
+Epipolar geometry is the geometry of two views. It aims to describe, for any position in the first view, the region in the second view where its corresponding position might reside. In this project, this knowledge is used in order to detect which of the presumably matching pairs returned by the feature matcher make geometric sense. Figure 3.5 seeks to give the reader an impression of the vast percentage of erroneous correspondences identified by the feature matcher.\\
 \linebreak
-As depicted in Figure 3.4, each point in one view corresponds to a line in the second view. This means that a location $r$ in the right view is considered to be a correct match for the point $x_{L}$ for any $r$ on the epipolar line. Since it can only ever make sense for $x_{L}$ to get coupled with a unique $r$, this proves that epipolar filtering does not identify all of the erroneous matches. Instead, it reduces the state of possible solutions from a 2 dimensional one (the entire view) to just one dimension (the epipolar line). Figure 3.4 portrays the remaining uncertainty by showing the multitude of points in the object space ($X$, $X_{1}$, $X_{2}$ etc.) which will be projected onto the same point in the left view. The epipolar line is formed by projecting this infinite set of points onto the right view.\\
+As depicted in Figure 3.6, each point in one view corresponds to a line in the second view. This means that a location $r$ in the right view is considered to be a correct match for the point $x_{L}$ for any $r$ on the epipolar line. Since it can only ever make sense for $x_{L}$ to get coupled with a unique $r$, this proves that epipolar filtering does not identify all of the erroneous matches. Instead, it reduces the state of possible solutions from a 2 dimensional one (the entire view) to just one dimension (the epipolar line). Figure 3.6 portrays the remaining uncertainty by showing the multitude of points in the object space ($X$, $X_{1}$, $X_{2}$ etc.) which will be projected onto the same point in the left view. The epipolar line is formed by projecting this infinite set of points onto the right view.\\
 \linebreak
 What follows is a description of some of the key notions pertaining to epipolar geometry \cite[chapter~9]{Hartley+2003}:
 \begin{itemize}
@@ -646,7 +659,7 @@ The camera matrix relates any point in the object space to a point in the view. 
 \mathbf{e_{R} = C_{R} O_{L}}
 \end{equation}
 \linebreak
-Equation 3.4 defines another point which resides on the epipolar line. In addition to $e_{r}$, this point completely determines the space of points in the second view which might correspond to $x_{L}$:
+Equation 3.10 defines another point which resides on the epipolar line. In addition to $e_{r}$, this point completely determines the space of points in the second view which might correspond to $x_{L}$:
 \begin{equation}
 \mathbf{p_{R} = C_{R} C_{L}^{\dagger} x_{L}}
 \end{equation}
@@ -671,10 +684,10 @@ $x_{R}$ can match $x_{L}$ only if it belongs to the line joining $e_{R}$ and $p_
 There are multiple sources of errors introduced by the computation described so far (e.g.\ the pseudo-inverse of a non-square matrix, the use of a \emph{tolerance} parameter in determining whether a point is part of the epipolar line, floating point arithmetic etc.). Although typically each of these accounts only for an error of up to 0.0001 in the relevant quantities, triangulation can greatly amplify this effect: any amount of error in the estimated location of a 2D feature can lead to a significant difference in the perceived depth of the 3D point found by triangulation and the real location of the feature.\\
 Since there is no reliable way to test whether a perceivable error has been introduced, the following measures were taken to remove from the cloud the points which are less likely to be part of a correct representation:
 \begin{itemize}
-\item \textbf{Statistical Outlier Removal}: For every point in the cloud the mean distance to its K-nearest neighbours is computed. The distribution of these mean distances is assumed to be Gaussian. A point is removed from the cloud if its corresponding mean distance lays outside of a certain interval of the underlying Gaussian.  
+\item \textbf{Statistical Outlier Removal}: For every point in the cloud the mean distance to its K-nearest neighbours is computed. The distribution of these mean distances is assumed to be Gaussian. A point is removed from the cloud if its corresponding mean distance lies outside of a certain interval of the underlying Gaussian.  
 \item \textbf{Radius Outlier Removal}: A point is removed from the cloud if there are fewer than \emph{N} points at a distance of at most \emph{d} from the initial point. 
 \end{itemize}
-Both of these filters are provided by \textbf{PCL}. My implementation is based on the tutorials found at \url{http://pointclouds.org/documentation/tutorials/statistical_outlier.php} and \url{http://pointclouds.org/documentation/tutorials/remove_outliers.php}.\\
+Both of these filters are provided by \textbf{PCL}.\footnote{My implementation is based on the tutorials found at \url{http://pointclouds.org/documentation/tutorials/statistical_outlier.php} and \url{http://pointclouds.org/documentation/tutorials/remove_outliers.php}.}\\
 \linebreak
 Another filter was assembled to limit the magnitude of the error introduced by the use of pseudo-inverses in \emph{Triangulation}: whenever a 3D point is determined, it is re-projected onto the image plane with the use of the camera matrix. If the distance between the feature used in determining the 3D point and the corresponding reprojection is greater than \emph{MaxReprojectionError}, the 3D point is not added to the solution set. 
 
@@ -683,7 +696,7 @@ As mentioned above, triangulation consists of solving a system of equations of t
 \begin{equation}
 u * {c}_{3}^TX - {c}_{1}^TX=0
 \end{equation}
-For noisy data it might be the case that not all of the equations can become equal to 0. The more general form is this:
+For noisy data it might be the case that not all of the equations can become equal to 0. The more general form is:
 \begin{equation}
 u * {c}_{3}^TX - {c}_{1}^TX=\epsilon_u
 \end{equation}
@@ -691,7 +704,7 @@ It is important to note that in dealing with the errors resulted from triangulat
 \begin{equation}
 \delta_u = u - c_1X/c_3X
 \end{equation}
-\textbf{Iterative-LS}\cite[p.~9]{Hartley96triangulation} aims to  find the 3D point $X$ whose associated error vector $\delta$ has the smallest magnitude. It is based on the simple observation that equation (3.13) is similar in form to equation (3.12). The two formulae are not equivalent, however, because the reweighing factor needed to turn one into the other depends on the value of the solution. One way to estimate the value of X from these two systems of equations is to start off by finding $X_0$, the solution of equation set (3.11), and then iteratively compute a new approximation $X_i$  by weighting the equations using the previously estimated value, $X_{i-1}$. Using this technique the solution is expected to converge to the real value within 10 iterations. In the cases in which the set of values is not found to converge the solution is discarded.
+\textbf{Iterative-LS}\cite[p.~9]{Hartley96triangulation} aims to  find the 3D point $X$ whose associated error vector $\delta$ has the smallest magnitude. It is based on the simple observation that equation (3.16) is similar in form to equation (3.15). The two formulae are not equivalent, however, because the reweighing factor needed to turn one into the other depends on the value of the solution. One way to estimate the value of X from these two systems of equations is to start off by finding $X_0$, the solution of equation set (3.14), and then iteratively computing a new approximation $X_i$  by weighting the equations using the previously estimated value, $X_{i-1}$. Using this technique the solution is expected to converge to the real value within 10 iterations. In the cases in which the set of values is not found to converge the solution is discarded.
 
  
 \subsubsection{Parallelism}
@@ -711,7 +724,7 @@ The process of determining points on the surface of the object is computationall
  pool.join();
 \end{verbatim}
 The \emph{push\_backMutex} is used to ensure that no two threads attempt to add a solution to the $point3D$ vector at the same time.\\
-Thread pools are used on multiple instances across the point cloud construction module. The most notable occasions are the one presented above, and the one involved in reading the input images.
+Thread pools are used on multiple instances across the point cloud construction module. The most note-worthy uses of parallel computation are the one presented above, and the one involved in reading the input images.
 
 \subsection{The Build System}
 By virtue of being the most complex module of the system, the point cloud constructor soon began to span over 10 source files and to have several dependencies. As a result, readjusting the \emph{Makefile} for every new insertion became a burdensome task. The preferred alternative was to use an open-source software construction tool, \emph{Scons}\footnote{\url{http://www.scons.org/}}, which provides built-in automatic dependency analysis. The configuration script for \emph{Scons} was substantially easier to maintain. An example of such a configuration script can be found in Appendix B.
@@ -778,7 +791,7 @@ The evaluation module provides support for constructing virtually any plot which
 \section{Summary} 
 This chapter focused on outlining the issues encountered throughout the development of this project, and on presenting the approach taken for tackling them. The issues identified belong to different areas of computer science, ranging from purely theoretical background encompassing the formulae of multiple-view geometry to technical details involved in the compilation of the code. \\
 \linebreak
-The most notable section of this chapter followed the evolution of the point cloud construction module. It included descriptions of the camera matrix, tringulation and epipolar geometry, along with a high-level description of the resulting prototypes.
+The focal section of this chapter followed the evolution of the point cloud construction module. It included descriptions of the camera matrix, tringulation and epipolar geometry, along with a high-level description of the resulting prototypes.
 
 \chapter{Evaluation}
 The main goal of this chapter is to convince the reader of the successful completion of the work undertaken in this project. It provides a quantitative an analysis of the results, and it compares them to the initial objectives.  
@@ -951,7 +964,7 @@ Here, the point cloud constructor is being run on inputs consisting of up to 300
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.67]{figs/time.png}	
-\caption{The execution time as a function of the number of input images.}
+\caption{Execution time as a function of the number of input images.}
 \end{center}
 \end{figure}
 \begin{figure}
@@ -966,10 +979,10 @@ Since the project is designed to be application-driven, a formal proof of correc
 \subsection{Manual Testing}
 Due to the fact that in this project most errors produce a visible effect in the visualization of the output, most of the testing that was required was performed manually. In doing so, the locations of the off-points was estimated from the visualization and the steps which led to the inference of those points were tracked in order to determine where the error was first introduced. Replacing the manual checks with an automatic approach for verifying that the output is sensible would not be feasible in this case because it is difficult to identify the off-points for any input shape. The manual checks were found to be a satisfactory alternative, leading to the fulfillment of the success criteria.
 \subsection{Continuous Integration}
-Due to multiple sections being developed simultaneously, continuous integration was essential in order to avoid the creation of an "integration hell" during the implementation of the point cloud constructor. At every stage, the whole system was reevaluated and tested to ensure that all sections were running in concert to achieve the desired effect.
+Due to multiple sections being developed simultaneously, continuous integration was essential in order to avoid the creation of an \enquote{integration hell} during the implementation of the point cloud constructor. At every stage, the whole system was reevaluated and tested to ensure that all sections were running in concert to achieve the desired effect.
 \subsection{Unit Testing}
 Some unit testing was performed to ensure that certain criteria were still met as the code underwent various changes. I chose to do the tests inline, by applying a given function to a mock set of function parameters.\\
-This type of testing was extensively used throughout the point cloud construction module in order to verify the soundness of mathematical derivations. For example, to verify the correctness of function which computes the camera matrix from a given camera pose, it was run with the value of the $cameraPose$ parameter set to (3.73357, 3.06849, 1.2825). When the resulting camera matrix is multiplied by the transpose of the camera pose vector (in homogeneous coordinates), the result is expected to be (0, 0, 0). 
+This type of testing was extensively used throughout the point cloud construction module in order to verify the soundness of mathematical derivations. For example, to verify the correctness of function which computes the camera matrix from a given camera position, it was run with the value of the $cameraPosition$ parameter set to (3.73357, 3.06849, 1.2825). When the resulting camera matrix is multiplied by the transpose of the camera position vector (in homogeneous coordinates), the result is expected to be (0, 0, 0). 
 
 \section{Summary}
 In this chapter I described the means of evaluating the results of this project by outlining the methodology used for gathering and plotting the data. The resulting plots were presented and compared to the initial predictions.\\ 
@@ -984,15 +997,15 @@ All of the objectives set in the project proposal had been achieved: a working s
 This is the largest project I have undertaken, and it allowed me to gain insight into the fascinating fields of computer vision and multiple-view geometry. 
 
 \section{Lessons Learned}
-This project enabled me to further my knowledge and skills and I have leaned many valuable lessons throughout. One of the most valuable ones has to do with the importance of planning for failure and allowing time to improve the results. The results from the early stages were rather daunting especially since understanding several research-level techniques and deciding which of the many approaches available in the literature to choose took longer than expected and, in some cases, ended up producing disappointing results. The project would not have been a success had I not chosen an incremental implementation technique and planned for time to go through multiple iterations.\\
+This project enabled me to further my knowledge and skills and I have learned many valuable lessons throughout. One of the most valuable ones has to do with the importance of planning for failure and allowing time to improve the results. The results from the early stages were rather daunting, especially since understanding several research-level techniques and deciding which of the many approaches available in the literature to choose took longer than expected and, in some cases, ended up producing disappointing results. The project would not have been a success had I not chosen an incremental implementation technique and planned for time to go through multiple iterations.\\
 \linebreak
-Another important lesson I took away from this experience is that the libraries chosen to provide a core functionality do not always come through, or, at least,  not at the expected quality. Perhaps the best example of this is relying on PCL to automatically construct a surface from the point cloud. I spend vast amounts of time trying to improve its performance both by reducing the noise in the point cloud and trying different filtering, resampling and normal estimation methods provided by PCL but with no use. Had I known earlier that this would be the case, I might have chosen a semi-automatic approach similar to the one described in the \emph{Proteus}\cite{ProteusInteractiveSFM} project.
+Another important lesson I took away from this experience is that the libraries chosen to provide core functionality do not always come through, or, at least,  not at the expected quality. Perhaps the best example of this is relying on PCL to automatically construct a surface from the point cloud. I spend vast amounts of time trying to improve its performance both by reducing the noise in the point cloud and trying different filtering, resampling and normal estimation methods provided by PCL but with no use. Had I known earlier that this would be the case, I might have chosen a semi-automatic approach similar to the one described in the \emph{Proteus}\cite{ProteusInteractiveSFM} project.
 \section{Future Work}
-Although the system is complete in the sense that it fulfills the initial objectives, future work can be done to improve the results and to turn this system into a deliverable piece of software. \\
+Although the system is complete in the sense that it fulfills the initial objectives, future work can be done to improve the results and to turn this system into a more practical application. \\
 \linebreak
 Even though the accuracy of the representation was found to be adequate, the number of input images necessary to produce a satisfactory result is rather disappointing. Future work would focus on reducing the number of images to at most 20.\\ One way to do this is to create a dense representation by estimating the depth at every pixel of the image, rather than just at the points of interest. The resulting depth maps would then be assembled into a model.\\ Unfortunately the size of this task along with the high risk of failure which accompanies it made this approach unfeasible for a Part II project.\\
 \linebreak
-The project was designed to focus on exploring what can be achieved in the field of 3D reconstruction. It was not meant to produce a piece of  ready to be delivered to a client.\\ 
+The project was designed to focus on exploring what can be achieved in the field of 3D reconstruction.\\ 
 Future work may include extending this system into a practical application. 
 The first step to take in this direction is to create support for the use of real images. The evaluation of such a system would compare the outcome with that of an existing system for 3D reconstruction whose capabilities had been analyzed and proven to be satisfactory.\\ 
 Other additional features which would enlarge the range of applications of this system include adding texture and shading to the model, eliminating the need to specify the location of the camera, and creating an interface for facilitating the interaction with the user.
